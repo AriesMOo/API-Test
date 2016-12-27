@@ -1,0 +1,18 @@
+{
+  "name": "api-rest-test",
+  "version": "1.0.0",
+  "description": "Es una pequeña prueba de concecpto para seguir el tutorial de API Rest con node.js de Carlos Azaustre",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mik Pride",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "~7.1.0",
+    "eslint": "~3.12.0"
+  }
+}
