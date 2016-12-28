@@ -42,6 +42,8 @@ app.get('/api/product/:productId', (req, res) => {
 });
 
 app.get('/api/products', (req, res) => {
+  console.log('GET desde /api/products');
+  
   // Es parecida a la funcion anterior
   Product.find({}, (err, products) => {
     if (err)
@@ -49,7 +51,7 @@ app.get('/api/products', (req, res) => {
     if (!products)
       return res.status(404).send({ message: 'No hay productos guardados todavía' });
 
-    res.send(200, { products });
+    res.status(200).send({ products });
   });
 });
 
@@ -74,12 +76,37 @@ app.post('/api/product', (req, res) => {
   });
 });
 
-app.put('/api/product/:productId', (req, res) => {
+app.delete('/api/product/:productId', (req, res) => {
+  console.log('DELETE desde /api/product/id');
+  
+  let productId = req.params.productId;
 
+  Product.findById(productId, (err, product) => {
+    if (err)
+      return res.status(500).send({ message: `Error al consultar a la BBDD: ${err}` });
+    
+    product.remove(err => {
+      if (err)
+        return res.status(500).send({ message: `Error al eliminar producto: ${err}` });
+      
+      res.status(200).send({ message: 'Producto eliminado correctamente' });
+    });
+  });  
 });
 
-app.delete('/api/product/:productId', (req, res) => {
+app.put('/api/product/:productId', (req, res) => {
+  console.log('UPDATE desde /api/product/id');
+  
+  let productId = req.params.productId;
+  let bodyProductUpdate = req.body; // Objeto a actualizar (aqui vendran los campos bien formados se entiende)
 
+  // a esta funcion guai se le pasa el id del objeto, los datos a actualziar, y el callback ;)
+  Product.findByIdAndUpdate(productId, bodyProductUpdate, (err, productUpdated) => {
+    if (err)
+      res.status(500).send({ message: `Error al actualizar el producto: ${err}` });
+    else
+      res.status(200).send({ message: 'Producto actualizado correctamente' });
+  });
 });
 
 // ---------------------------------------------------------
