@@ -11,7 +11,26 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+
+// VERBOS
+// ---------------------------------------------------------
+
+// Ruta por defecto (/)
+app.get('/', (req, res) => {
+	res.send({ message: 'Hello motto !!' });  // Se manda una respuesta JSON
+});
+
+// Ruta con parametro (:name) en /hola/
+app.get('/hola/:name', (req, res) => {
+	res.send(`Hello tronco-${req.params.name}`);  // Respuesta en tipo plano
+});
+
+// ---------------------------------------------------------
+
+
 // Arrancamos la aplicacion en el puerto especificado
 app.listen(port, () => {
 	console.log(`Esto marcha en http://localhsot:${port}`);
 });
+
+// TODO: instalar mongoose 

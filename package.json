@@ -7,15 +7,16 @@
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Mik Pride",
+  "author": "Mik Pride (https://github.com/AriesMOo)",
+  "repository": "https://github.com/AriesMOo/API-Test",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0"
   },
   "devDependencies": {
-    "babel-eslint": "~7.1.0",
-    "eslint": "~3.12.0",
+    "babel-eslint": "^7.1.1",
+    "eslint": "^3.12.2",
     "nodemon": "^1.11.0"
   }
 }
