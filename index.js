@@ -2,6 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser'); // Para parsear peticiones HTTP 
+const mongoose = require('mongoose');
 
 // Creamos la app express en cuestion y guardamos un puerto para correrlo
 const app = express();
@@ -16,14 +17,14 @@ app.use(bodyParser.json());
 // ---------------------------------------------------------
 
 // Ruta por defecto (/)
-/* app.get('/', (req, res) => {
-	res.send({ message: 'Hello motto !!' });  // Se manda una respuesta JSON
-});
+    /* app.get('/', (req, res) => {
+      res.send({ message: 'Hello motto !!' });  // Se manda una respuesta JSON
+    });
 
-// Ruta con parametro (:name) en /hola/
-app.get('/hola/:name', (req, res) => {
-	res.send(`Hello tronco-${req.params.name}`);  // Respuesta en texto plano
-}); */
+    // Ruta con parametro (:name) en /hola/
+    app.get('/hola/:name', (req, res) => {
+      res.send(`Hello tronco-${req.params.name}`);  // Respuesta en texto plano
+    }); */
 
 app.get('/api/products', (req, res) => {
   res.status(200).send({ products: [] });    // Se devuelve un 200 (OK) y un body JSON
@@ -48,6 +49,13 @@ app.delete('/api/product/:productId', (req, res) => {
 
 // ---------------------------------------------------------
 
+// Configuramos conexion con BBDD, a traves de mongoose
+mongoose.connect('mongodb://localhost:27017/shop', (err, res) => {
+  if (err) 
+    return console.error('Error al conectar con la BBDD');
+  else 
+    console.log('Conexión a BBDD establecida...');
+});
 
 // Arrancamos la aplicacion en el puerto especificado
 app.listen(port, () => {
