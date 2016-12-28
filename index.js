@@ -24,12 +24,33 @@ app.get('/', (req, res) => {
 });
 
 // Rutas de API
-app.get('/api/products', (req, res) => {
-  res.status(200).send({ products: [] });    // Se devuelve un 200 (OK) y un body JSON
+app.get('/api/product/:productId', (req, res) => {
+  console.log('GET desde /api/produc/id');
+
+  // Guardamos el ID que viene como ruta /api/product/añlsfañslfj
+  let productId = req.params.productId;
+
+  // Consultamos a la BBDD (callback con err y producto devuelto)
+  Product.findById(productId, (err, product) => {
+    if (err)  // Si hay un error, 500 y fuera
+      return res.status(500).send({ message: `Error al realizar la petición a la BBDD: ${err}` });
+    if (!product)  // Si no encuentra el producto, 404 y fuera
+      return res.status(404).send({ message: 'El producto no existe' });
+
+    res.status(200).send({ product });  // Si llega aqui es que ha encontrado el producto por el ID
+  });
 });
 
-app.get('/api/product/:productId', (req, res) => {
+app.get('/api/products', (req, res) => {
+  // Es parecida a la funcion anterior
+  Product.find({}, (err, products) => {
+    if (err)
+      return res.status(500).send({ message: `Error al realizar la consulta a la BBDD: ${err}` });
+    if (!products)
+      return res.status(404).send({ message: 'No hay productos guardados todavía' });
 
+    res.send(200, { products });
+  });
 });
 
 app.post('/api/product', (req, res) => {
