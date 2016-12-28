@@ -49,4 +49,7 @@ jspm_packages
 # Yarn Integrity file
 .yarn-integrity
 
+# Cosas VSCode
+angulardoc.json
+
 ## copiado de otro gitignore (de loopback)
