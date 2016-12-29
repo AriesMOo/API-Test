@@ -4,7 +4,7 @@ const express = require('express');
 const api = express.Router();
 const productController = require('../controllers/product');
 
-// Ruta por defecto (/)
+// Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 api.get('/', (req, res) => {
   res.send('<p>Yo creo que quieres ir a <a href="http://localhost:3000/api/products">la API</a></p>');  // Se manda una respuesta JSON
 });
@@ -17,5 +17,5 @@ api.put('/product/:productId', productController.updateProduct);
 
 module.exports = api;
 
-// NOTE: OJO !! el nombre del router es lo que se antepone a la direccion. En este caso
-// como se llama api, las direcciones son localhost/api/products, etc.
+// NOTE: OJO !! en app.js usamos esta ruta especificando que todas cuelgan de 
+// /api, asi que todas las rutas de aqui son paara localhost/api/products, etc.
