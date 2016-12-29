@@ -13,5 +13,5 @@ const ProductSchema = Schema({
 	description: String														 // Si no se pasa una categoria correcta SE IGNORA (aunque a mi me da error y fuego)
 });
 
-// Se exporta el modelo (nombre - schema)
+// Se exporta el modelo (nombre - schema) (en ES6 seria exports solo, como no se soporta directametne, se pone module.exports)
 module.exports = mongoose.model('Product', ProductSchema);
