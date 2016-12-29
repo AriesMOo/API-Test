@@ -4,8 +4,6 @@
 const Product = require('../models/product');
 
 function getProduct (req, res){
-  console.log('GET desde /api/produc/id');
-
   // Guardamos el ID que viene como ruta /api/product/añlsfañslfj
   let productId = req.params.productId;
 
@@ -21,8 +19,6 @@ function getProduct (req, res){
 }
 
 function getProducts (req, res){
-  console.log('GET desde /api/products');
-
   // Es parecida a la funcion anterior
   Product.find({}, (err, products) => {
     if (err)
@@ -35,7 +31,6 @@ function getProducts (req, res){
 }
 
 function saveProduct (req, res){
-  console.log('POST desde /api/product');
   console.log(req.body);
 
   // Creamos un producto
@@ -56,8 +51,6 @@ function saveProduct (req, res){
 }
 
 function updateProduct (req, res){
-  console.log('UPDATE desde /api/product/id');
-  
   let productId = req.params.productId;
   let bodyProductUpdate = req.body; // Objeto a actualizar (aqui vendran los campos bien formados se entiende)
 
@@ -71,8 +64,6 @@ function updateProduct (req, res){
 }
 
 function deleteProduct (req, res){
-  console.log('DELETE desde /api/product/id');
-  
   let productId = req.params.productId;
 
   Product.findById(productId, (err, product) => {

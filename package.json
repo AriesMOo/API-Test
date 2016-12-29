@@ -2,9 +2,9 @@
   "name": "api-rest-test",
   "version": "1.0.0",
   "description": "Es una pequeña prueba de concecpto para seguir el tutorial de API Rest con node.js de Carlos Azaustre",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mik Pride (https://github.com/AriesMOo)",
@@ -15,7 +15,8 @@
     "body-parser": "^1.15.2",
     "crypto": "0.0.3",
     "express": "^4.14.0",
-    "mongoose": "^4.7.5"
+    "mongoose": "^4.7.5",
+    "morgan": "^1.7.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
