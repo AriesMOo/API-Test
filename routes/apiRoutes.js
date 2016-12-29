@@ -13,6 +13,7 @@ apiRouter.get('/', (req, res) => {
               <li><a href="http://localhost:${config.port}/api/products">Products</a></li>              
             </ul>`);
 });
+
 // Rutas de API
 apiRouter.get('/product/:productId', productController.getProduct);
 apiRouter.get('/products', productController.getProducts);

@@ -2,25 +2,36 @@
 
 const mongoose = require('mongoose');
 const bcrypt   = require('bcrypt-nodejs'); // Para cifrar los passwords
-const crypto   = require('crypto'); // Para gravatar
-const Schema   = mongoose.Schema;
 
-const userSchema = Schema({
-	email: { type: String, unique: true, lowercase: true }, // NOTE: UNIQUE y en lowercase todo (da igual que lo pasen con mayus)
-  displayName: String,
-  avatar: String, // En realiadd es una url
-  password: { type: String, select: false }, // NOTE: el select: false hace que cada vez que consultemos el user, el password NO se envie nunca !!
-  signupDate: { type: Date, default: Date.now() }, // NOTE: si no se pone nada, se pone la fecha del server AUTOMATICAMENTE !
+const userSchema = mongoose.Schema({
+	email: { 
+    type: String, 
+    unique: true, 
+    lowercase: true,
+    required: true
+    // match: RegExp qeu revise que sea un email
+  }, 
+  password: { 
+    type: String, 
+    select: false, // NOTE: el select: false hace que cada vez que consultemos el user, el password NO se envie nunca !!
+    required: true
+  }, 
+  signupDate: { 
+    type: Date, 
+    default: Date.now() // NOTE: si no se pone nada, se pone la fecha del server AUTOMATICAMENTE !
+  }, 
   lastLogin: Date
 });
 
 /* Funcion que se invoca ANTES (pre) de salvar -> (next es el siguiente hook, 
 si lo hay). Sirve para hashear la contraseña antes de guardarla */
-userSchema.pre('save', (next) => {
+/* USAR sin arrow function pq a mongoose no le gusta aqui (cambia el valor de 
+this y no hay forma de hacerlo funcionar bien si no es así */
+userSchema.pre('save', function (next) {
   let user = this; // Pq estamos en el userSchema ;)
   
-  // Si no se ha modificado el password... no hay que hacer nada
-  if (!user.isModified('password'))
+  // Si no se ha modificado el password o no es nuevo... no hay que hacer nada
+  if (!user.isModified('password') || !user.isNew)
     return next();
   
   // 1) Generamos el salt (por defecto son 10 asi que esto no haria falta en realidad)
@@ -40,14 +51,13 @@ userSchema.pre('save', (next) => {
   });
 });
 
-userSchema.methods.gravatar = function () {
-  // Si no tiene email, se asigna un avatar aleatorio
-  if (!this.email)
-    return 'https://gravatar.com/avatar/?s=200&d=retro';
-
-  // Si tiene email igual tienen  un avatar salvado en gravatar
-  const md5 = crypto.createHash('md5').update(this.email).digest('hex');
-  return `https://gravatar.com/avatar/${md5}?s=200&d=retro`;
+userSchema.methods.comparePassword = (passw, callback) => {  
+  bcrypt.compare(passw, this.password, (err, isMatch) => {
+    if (err)
+      return callback(err);
+    else 
+      return callback(null, isMatch);
+  });
 };
 
 // Se exporta el modelo 

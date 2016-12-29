@@ -10,7 +10,7 @@ generalRouter.get('/', (req, res) => {
      .send(`<h1>API pow@ here !! [testing hoyga]</h1>
             <ul>
               <li><a href="http://localhost:${config.port}/api">API directory</a></li>
-              <li><a href="http://localhost:${config.port}/api/products">Products</a></li>              
+              <li><a href="http://localhost:${config.port}/user">Users directory</a></li>                            
             </ul>`);
 });
 
