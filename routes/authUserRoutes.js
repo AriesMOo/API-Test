@@ -6,9 +6,8 @@ const authUserRouter = express.Router();
 
 // Rutas de login/logout y relacionadas con authUserRouter
 authUserRouter.get('/', userController.getUsers);
+authUserRouter.get('/:userId', userController.ensureAuthenticationMiddleware, userController.getUser);
 authUserRouter.post('/', userController.saveUser);
-authUserRouter.post('/login', userController.loginUser);
-authUserRouter.post('/logout', userController.logoutUser);
-authUserRouter.get('/:userId', userController.getUser);
+authUserRouter.post('/authenticate', userController.authenticate);
 
 module.exports = authUserRouter;

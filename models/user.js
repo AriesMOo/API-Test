@@ -31,7 +31,7 @@ userSchema.pre('save', function (next) {
   let user = this; // Pq estamos en el userSchema ;)
   
   // Si no se ha modificado el password o no es nuevo... no hay que hacer nada
-  if (!user.isModified('password') || !user.isNew)
+  if (!user.isModified('password') || !user.isNew) // FIXME: ojo !! revisar este || pq creo que es && (ver function ensureAuthenticationMiddleware de user.controller.js)
     return next();
   
   // 1) Generamos el salt (por defecto son 10 asi que esto no haria falta en realidad)
