@@ -15,10 +15,12 @@
     "body-parser": "^1.15.2",
     "crypto": "0.0.3",
     "express": "^4.14.0",
+    "ip": "^1.1.4",
     "jwt-simple": "^0.5.1",
     "moment": "^2.17.1",
     "mongoose": "^4.7.5",
-    "morgan": "^1.7.0"
+    "morgan": "^1.7.0",
+    "sriracha": "^1.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",

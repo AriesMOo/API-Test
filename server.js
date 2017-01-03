@@ -4,6 +4,7 @@ const express        = require('express');
 const mongoose       = require('mongoose');
 const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP 
 const morgan         = require('morgan');
+const sriracha       = require('sriracha');
 const apiRouter      = require('./routes/apiRoutes');
 const generalRouter  = require('./routes/generalRoutes');
 const authUserRouter = require('./routes/authUserRoutes');
@@ -15,6 +16,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
+app.use('/admin', sriracha());
 
 // Configuramos el/los routers segun rutas base para express
 app.use('/', generalRouter);

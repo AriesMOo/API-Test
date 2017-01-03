@@ -1,9 +1,10 @@
 'use strict';
 
-const express = require('express');
-const config = require('../config/config');
+const express           = require('express');
+const config            = require('../config/config');
 const productController = require('../controllers/product');
-const apiRouter = express.Router();
+const authController    = require('../controllers/user');
+const apiRouter         = express.Router();
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 apiRouter.get('/', (req, res) => {
@@ -15,6 +16,8 @@ apiRouter.get('/', (req, res) => {
 });
 
 // Rutas de API
+apiRouter.all('*', authController.ensureAuthenticationMiddleware);
+// Se protegen todas las rutas (apiRouter.all) 
 apiRouter.get('/product/:productId', productController.getProduct);
 apiRouter.get('/products', productController.getProducts);
 apiRouter.post('/product', productController.saveProduct);

@@ -38,7 +38,31 @@ function saveUser (req, res){
 	});
 }
 
-function authenticate (req, res) {
+// Es un sinonimo de getToken en realidad
+function authenticate (req, res) { 
+	let email = req.body.email;
+	let password = req.body.password;
+
+	if (!email && !password) // FIXME: traga con uno que vaya. No es el comportamiento deseado
+		return res.status(400).send({ message: 'Error: No se ha especificado correctamente email y password' });
+	
+	userModel.findById(email, (err, user) => { //FIXME: no es con el id de findbyid, hay que buscar por mail !! :D
+		if (err) 
+			return res.status(500).send({ message: `Error 1 al realizar peticion a la BBDD: ${err}` });		
+		if (!user)
+			return res.status(403).send({ messge: 'No hay usuarios con el email especificado' });
+		
+		// Si llega aqui se supone que hay un usuario con el mail pasadso en la BBDD
+		user.comparePassword(password, (err, coincide) => {
+			if (err)
+				return res.status(500).send({ message: `Error al realizar la peticion a la BBDD: ${err}` });
+			if (!coincide)
+				return res.status(401).send({ message: 'User/password no valido' });
+			
+			return res.status(200).send({ toke: authService.createJwtToken(user._id) });
+		});
+
+	});
 
 }
 
