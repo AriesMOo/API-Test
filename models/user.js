@@ -13,8 +13,8 @@ const userSchema = mongoose.Schema({
   }, 
   password: { 
     type: String, 
-    select: false, // NOTE: el select: false hace que cada vez que consultemos el user, el password NO se envie nunca !!
-    required: true
+    // select: false, // NOTE: el select: false hace que cada vez que consultemos el user, el password NO se envie nunca !!
+    required: true    // NOTE: el select: false da problemas cuando se usa en los metodos de la clase de mongoose (linea 55) pq no accede al passwr y.. claro !
   }, 
   signupDate: { 
     type: Date, 
@@ -51,8 +51,10 @@ userSchema.pre('save', function (next) {
   });
 });
 
-userSchema.methods.comparePassword = (passw, callback) => {  
-  bcrypt.compare(passw, this.password, (err, isMatch) => {
+// No va con arrow operator =>
+// OJO con el select: false de password (no puede trincar el hash del pass de la BBDD)
+userSchema.methods.comparePassword = function (passw, callback) {  
+  bcrypt.compare(passw, this.password, function (err, isMatch) {
     if (err)
       return callback(err);
     else 

@@ -43,12 +43,12 @@ function authenticate (req, res) {
 	let email = req.body.email;
 	let password = req.body.password;
 
-	if (!email && !password) // FIXME: traga con uno que vaya. No es el comportamiento deseado
+	if (!(email && password)) // NOTE: ojo al error comun: sin el parentesis !() traga con uno que vaya y no es el comportamiento deseado
 		return res.status(400).send({ message: 'Error: No se ha especificado correctamente email y password' });
 	
-	userModel.findById(email, (err, user) => { //FIXME: no es con el id de findbyid, hay que buscar por mail !! :D
+	userModel.findOne({ 'email': email }, (err, user) => { 
 		if (err) 
-			return res.status(500).send({ message: `Error 1 al realizar peticion a la BBDD: ${err}` });		
+			return res.status(500).send({ message: `Error al realizar peticion a la BBDD: ${err}` });		
 		if (!user)
 			return res.status(403).send({ messge: 'No hay usuarios con el email especificado' });
 		
@@ -59,7 +59,7 @@ function authenticate (req, res) {
 			if (!coincide)
 				return res.status(401).send({ message: 'User/password no valido' });
 			
-			return res.status(200).send({ toke: authService.createJwtToken(user._id) });
+			return res.status(200).send({ token: authService.createJwtToken(user._id) });
 		});
 
 	});
