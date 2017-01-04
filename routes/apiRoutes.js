@@ -1,10 +1,11 @@
 'use strict';
 
-const express           = require('express');
-const config            = require('../config/config');
-const productController = require('../controllers/product');
-const authController    = require('../controllers/user');
-const apiRouter         = express.Router();
+const express               = require('express');
+const config                = require('../config/config');
+const productController     = require('../controllers/product');
+const authController        = require('../controllers/user');
+const dispositiveController = require('../controllers/dispositive.controller');
+const apiRouter             = express.Router();
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 apiRouter.get('/', (req, res) => {
@@ -12,8 +13,14 @@ apiRouter.get('/', (req, res) => {
      .send(`<h2>API Directory</h2>
             <ul>
               <li><a href="http://localhost:${config.port}/api/products">Products</a></li>              
+              <li><a href="http://localhost:${config.port}/api/dispositive">Dispositives</a></li>              
             </ul>`);
 });
+
+/* test  */ 
+apiRouter.post('/dispositive', dispositiveController.saveDispositive);
+apiRouter.get('/dispositive', dispositiveController.getDispositives);
+/** test */
 
 // Rutas de API
 apiRouter.all('*', authController.ensureAuthenticationMiddleware);

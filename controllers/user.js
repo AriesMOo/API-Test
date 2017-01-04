@@ -1,7 +1,7 @@
 'use strict';
 
-const jwt = require('jwt-simple');
-const moment = require('moment');
+const jwt       = require('jwt-simple');
+const moment    = require('moment');
 const userModel = require('../models/user');
 const jwtConfig = require('../config/jwt.config');
 
