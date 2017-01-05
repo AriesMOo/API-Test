@@ -3,6 +3,19 @@
 const mongoose = require('mongoose');
 const bcrypt   = require('bcrypt-nodejs'); // Para cifrar los passwords
 
+
+/* Modelo del bosqujo TODO: Actualizarlo !! 
+usuarios({
+    nombre:
+    usuario:
+    password:
+    activo: true | false
+    tipo: enum -->> [admin - user]
+    audit: {
+        actualizadoPorId:
+    }
+}) */
+
 const userSchema = mongoose.Schema({
 	email: { 
     type: String, 
@@ -31,7 +44,7 @@ userSchema.pre('save', function (next) {
   let user = this; // Pq estamos en el userSchema ;)
   
   // Si no se ha modificado el password o no es nuevo... no hay que hacer nada
-  if (!user.isModified('password') || !user.isNew) // FIXME: ojo !! revisar este || pq creo que es && (ver function ensureAuthenticationMiddleware de user.controller.js)
+  if (!(user.isModified('password') || user.isNew)) // TODO: comprobar que esto va bien asi
     return next();
   
   // 1) Generamos el salt (por defecto son 10 asi que esto no haria falta en realidad)

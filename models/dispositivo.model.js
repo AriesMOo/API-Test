@@ -2,31 +2,43 @@
 
 const mongoose = require('mongoose');
 
-const dispositiveSchema = mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    IPs: [{
-        IP: { type: String, unique: true },
-        networkID: { type: mongoose.Schema.Types.ObjectId, unique: true }
-    }],
-    dispType: { type: String, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada']},
-    technicalData: {
-        manufacturer: String,
-        model: String,
-        memory: String,
-        procesador: String,
-        // HD: [String]
-        HD: String
-    },
-    phsysicalLocation: String,
-    notes: String,
-    audit: {
-        _createdBy: mongoose.Schema.Types.ObjectId,
-        _updatedBy: mongoose.Schema.Types.ObjectId
-    }    
-}, { timestamps: { createdAt: 'created_at' } }); // FIXME: quitar los timestamps y dejarlos a mano dentro de audit
+const dispositivoSchema = mongoose.Schema({
+  nombre: { type: String, required: true, unique: true },
+  IPs: [{
+    IP: { type: Number, unique: false },
+    networkID: { type: mongoose.Schema.Types.ObjectId }
+  }],
+  tipo: { type: String, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada'] },
+  datosTecnicos: {
+    fabricante: String,
+    modelo: String,
+    memoria: String,
+    procesador: String,
+    // HD: [String]
+    HD: String
+  },
+  ubicacionFisicaEnEAP: String,
+  notas: String,
+  audit: {
+    creadoEn: { type: Date, defaults: Date.now() },
+    actualizadoEn: { type: Date, defaults: Date.now() },
+    _creadoPorID: mongoose.Schema.Types.ObjectId,
+    _actualizadoPorID: mongoose.Schema.Types.ObjectId
+  }
+});
 
-module.exports = mongoose.model('Dispositive', dispositiveSchema);
+
+dispositivoSchema.pre('save', function (next) {
+  if (this.isModified())
+    this.audit.actualizadoEn = Date.now();
+
+  if (this.isNew){
+    this.audit.creadoEn = Date.now();
+    this.audit.actualizadoEn = Date.now();
+  }
+
+  return next();
+});
+
+
+module.exports = mongoose.model('Dispositivo', dispositivoSchema);

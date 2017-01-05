@@ -4,7 +4,8 @@ const express               = require('express');
 const config                = require('../config/config');
 const productController     = require('../controllers/product');
 const authController        = require('../controllers/user');
-const dispositiveController = require('../controllers/dispositive.controller');
+const dispositivoController = require('../controllers/dispositivo.controller');
+const lugaresController     = require('../controllers/lugar.controller.js');
 const apiRouter             = express.Router();
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
@@ -13,13 +14,16 @@ apiRouter.get('/', (req, res) => {
      .send(`<h2>API Directory</h2>
             <ul>
               <li><a href="http://localhost:${config.port}/api/products">Products</a></li>              
-              <li><a href="http://localhost:${config.port}/api/dispositive">Dispositives</a></li>              
+              <li><a href="http://localhost:${config.port}/api/dispositivos">Dispositives</a></li>
+              <li><a href="http://localhost:${config.port}/api/eaps">EAPs (lugares)</a></li>                                          
             </ul>`);
 });
 
 /* test  */ 
-apiRouter.post('/dispositive', dispositiveController.saveDispositive);
-apiRouter.get('/dispositive', dispositiveController.getDispositives);
+apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
+apiRouter.post('/dispositivo', dispositivoController.saveDispositivo);
+apiRouter.get('/eaps', lugaresController.getLugares);
+apiRouter.post('/eap', lugaresController.saveLugar);
 /** test */
 
 // Rutas de API
