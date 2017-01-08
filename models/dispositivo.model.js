@@ -7,6 +7,7 @@ const dispositivoSchema = mongoose.Schema({
   IPs: [{
     IP: { type: Number, unique: false },
     networkID: { type: mongoose.Schema.Types.ObjectId }
+    // TODO: agregar un campo para el lugarID ?? y asi ir a tiro fijo al lugar->red?
   }],
   tipo: { type: String, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada'] },
   datosTecnicos: {
@@ -39,6 +40,5 @@ dispositivoSchema.pre('save', function (next) {
 
   return next();
 });
-
 
 module.exports = mongoose.model('Dispositivo', dispositivoSchema);

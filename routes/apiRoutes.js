@@ -14,7 +14,7 @@ apiRouter.get('/', (req, res) => {
      .send(`<h2>API Directory</h2>
             <ul>
               <li><a href="http://localhost:${config.port}/api/products">Products</a></li>              
-              <li><a href="http://localhost:${config.port}/api/dispositivos">Dispositives</a></li>
+              <li><a href="http://localhost:${config.port}/api/dispositivos">Dispositivos</a></li>
               <li><a href="http://localhost:${config.port}/api/eaps">EAPs (lugares)</a></li>                                          
             </ul>`);
 });

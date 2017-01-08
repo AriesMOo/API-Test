@@ -1,6 +1,8 @@
 'use strict';
 
 const ipOps            = require('ip');
+const mongoose         = require('mongoose');
+const lugarModel       = require('../models/lugar.model.js');
 const dispositivoModel = require('../models/dispositivo.model');
 
 function getDispositivos (req, res) {
@@ -21,13 +23,16 @@ function saveDispositivo (req, res) {
     let redID = req.body.redID;
 
 	if (nombre && ip && redID){
-        newDispositivo.nombre = nombre;
+        lugarModel.findOne({ redes: mongoose.Types.ObjectId(redID) }, (err, redLugar) => {
+            if (!redLugar)
+                return res.status(400).send({ message: 'Error: El id de la red facilitada no existe en la BBDD.' });
+        });
         newDispositivo.IPs.push({ IP: ipOps.toLong(ip), networkID: redID });
+        newDispositivo.nombre = nombre;
         newDispositivo.audit._creadoPorID = userID;
     } else 
 		return res.status(400).send({ message: 'Error: No se han proporcionado los datos necesarios (nombre, IP y/o ID de la red)' });
 
-    console.log(newDispositivo); // FIXME: crea uno pero no puedo meter mas de uno siempre da error de clave duplicada
 	newDispositivo.save((err, dispositivoStored) => {
 		if (err)
 			return res.status(500).send({ message: `Error al salvar en la BBDD: ${err}` });

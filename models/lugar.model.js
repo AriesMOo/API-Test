@@ -41,6 +41,18 @@ const lugarSchema = mongoose.Schema({
     }
 });
 
+// FIXME: incluir un metodo que devuelva el ID del lugar (EAP) pasando un ID de una red. Para ello hay que mirar en el array de Redess de todos los lugares. (this.redes.contains()??)
+// TODO: añadir mas metodos utiles; getLugarID(redID), isRedValid(redID), getLugarID(telefonoID), 
+// NOTE: http://stackoverflow.com/questions/22941554/mongoose-query-find-an-element-inside-an-array  
+lugarSchema.methods.existeRed = function (passw, callback) {  
+  bcrypt.compare(passw, this.password, function (err, isMatch) {
+    if (err)
+      return callback(err);
+    else 
+      return callback(null, isMatch);
+  });
+};
+
 /* NO se puede aplicar esto porque las redes son un lio para actualizar campos 
 de _actualizadoPOrID y demas (al ser una array, hay que buscar el actualizad)
 Requiere menos trabajo hacerlo a "mano" desde el front-end/angular
