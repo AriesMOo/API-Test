@@ -30,6 +30,14 @@ const dispositivoSchema = mongoose.Schema({
 
 
 dispositivoSchema.pre('save', function (next) {
+  // NOTE: aqui estaria bien mirar si la IP cambia o es nueva, si pertenece a una red ya existente
+  // pero ciertamente es jarto chungo
+  /* let IPs = this.IPs;
+
+  IPs.forEach((IP) => {
+    if (IP.isDirectModified())
+  });*/
+
   if (this.isModified())
     this.audit.actualizadoEn = Date.now();
 

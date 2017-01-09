@@ -20,6 +20,7 @@ apiRouter.get('/', (req, res) => {
 });
 
 /* test  */ 
+apiRouter.get('/testInsertarDispositivo', dispositivoController.testAggregation);
 apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
 apiRouter.post('/dispositivo', dispositivoController.saveDispositivo);
 apiRouter.get('/eaps', lugaresController.getLugares);

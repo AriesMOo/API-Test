@@ -41,7 +41,23 @@ function saveDispositivo (req, res) {
 	});
 }
 
+function testAggregation (req, res) {
+    lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId('587140348f9d1bc5e56e0ec5') }, (err, lugar) => {
+        res.status(200).send(lugar);
+    }); 
+    /*lugarModel.aggregate(
+        [ 
+            { $unwind:  '$redes' },
+            // { $project: { redes: 1 } },
+            { $match: { 'redes._id': mongoose.Types.ObjectId('587140348f9d1bc5e56e0ec5') } }
+        ])
+        .exec(function (err, result) {
+            res.status(200).send({ message: result });
+        });*/
+}
+
 module.exports = {
     getDispositivos,
-    saveDispositivo
+    saveDispositivo,
+    testAggregation
 };
