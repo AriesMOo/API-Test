@@ -42,14 +42,18 @@ function saveDispositivo (req, res) {
 }
 
 function testAggregation (req, res) {
+    // Asi busca por networkID y devuelve el objeto completo (con el array de redes). Si hay 3 redes, 3 objetos red devuelve dentro de redes[]
     /* lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId('586e4f070d061f2688a76d82') }, (err, lugar) => {
         res.status(200).send(lugar);
     }); */
+    
+    // De esta forma devuelve una sola red en redes -> redes { cidr: ,gateway: ,tipo: ,_id_: } que es la del objeto de busqueda
+    // Asi se puede acceder directamente a ella de forma mucho mas comoda (aunque la busqueda es mas chunga)
     lugarModel.aggregate(
         [ 
             { $unwind:  '$redes' },
             // { $project: { redes: 1 } },
-            { $match: { 'redes._id': mongoose.Types.ObjectId('586e4f070d061f2688a76d00') } }
+            { $match: { 'redes._id': mongoose.Types.ObjectId('587140348f9d1bc5e56e0ec5') } }
         ])
         .exec(function (err, result) {
             res.status(200).send({ message: result });
