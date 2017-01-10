@@ -1,6 +1,8 @@
 'use strict';
 
-const mongoose = require('mongoose');
+const mongoose   = require('mongoose');
+const lugarModel = require('../models/lugar.model');
+const ipOps      = require('ip');
 
 const dispositivoSchema = mongoose.Schema({
   nombre: { type: String, required: true, unique: true },
@@ -30,13 +32,28 @@ const dispositivoSchema = mongoose.Schema({
 
 
 dispositivoSchema.pre('save', function (next) {
-  // NOTE: aqui estaria bien mirar si la IP cambia o es nueva, si pertenece a una red ya existente
-  // pero ciertamente es jarto chungo
-  /* let IPs = this.IPs;
+  let IPs = this.IPs;
 
   IPs.forEach((IP) => {
-    if (IP.isDirectModified())
-  });*/
+    if (IP.isDirectModified() || IP.isNew)
+      // console.log(`IP modificada: ${IP}`);
+      // Para cada IP modificada o nueva, se comprueba 1) si el networkID corresponde con una red existente y 2) si la IP esta en el rango de ese networkID
+      lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId(IP.networkID) }, (err, lugar) => {
+        if (!lugar)
+          return next(new Error('No hay ninguna red que conincida con el networkID pasado'));
+          
+        console.log(`Lugar findeado: ${lugar}`);
+        // Porque sigue devolviendo un array con las redes que tenga (si existe alguna red que tenga la IP en el rango correcto)
+        let redAsignadaEsValida = lugar.redes.some((red) => {
+          ipOps.cidrSubnet(red.cidr).contains(ipOps.fromLong(IP));
+        });
+
+        if (!redAsignadaEsValida){
+          console.log('============ IP fuera de rango (la red no coincide con el rango');
+          return next(new Error('La IP está fuera del rango para la red seleccionada'));
+        }
+    }); 
+  });
 
   if (this.isModified())
     this.audit.actualizadoEn = Date.now();

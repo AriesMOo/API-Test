@@ -23,10 +23,10 @@ function saveDispositivo (req, res) {
     let redID = req.body.redID;
 
 	if (nombre && ip && redID){
-        lugarModel.findOne({ redes: mongoose.Types.ObjectId(redID) }, (err, redLugar) => {
-            if (!redLugar)
+        /* lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId(redID) }, (err, lugar) => {
+            if (!lugar)
                 return res.status(400).send({ message: 'Error: El id de la red facilitada no existe en la BBDD.' });
-        });
+        });*/
         newDispositivo.IPs.push({ IP: ipOps.toLong(ip), networkID: redID });
         newDispositivo.nombre = nombre;
         newDispositivo.audit._creadoPorID = userID;
@@ -42,18 +42,18 @@ function saveDispositivo (req, res) {
 }
 
 function testAggregation (req, res) {
-    lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId('587140348f9d1bc5e56e0ec5') }, (err, lugar) => {
+    /* lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId('586e4f070d061f2688a76d82') }, (err, lugar) => {
         res.status(200).send(lugar);
-    }); 
-    /*lugarModel.aggregate(
+    }); */
+    lugarModel.aggregate(
         [ 
             { $unwind:  '$redes' },
             // { $project: { redes: 1 } },
-            { $match: { 'redes._id': mongoose.Types.ObjectId('587140348f9d1bc5e56e0ec5') } }
+            { $match: { 'redes._id': mongoose.Types.ObjectId('586e4f070d061f2688a76d00') } }
         ])
         .exec(function (err, result) {
             res.status(200).send({ message: result });
-        });*/
+        });
 }
 
 module.exports = {
