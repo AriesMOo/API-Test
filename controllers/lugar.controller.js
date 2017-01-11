@@ -30,7 +30,8 @@ function saveLugar (req, res) {
     });
 
     nuevoLugar.save((err, lugarGuardado) => {
-        if (err) return res.status(500).send({ message: `Error: No se ha podido guardar en la BBDD. ${err}` });
+        if (err) 
+            return res.status(500).send({ message: `Error: No se ha podido guardar en la BBDD. ${err}` });
 
         res.status(200).send({ lugar: lugarGuardado });
     });
@@ -40,8 +41,41 @@ function getLugar (req, res) {
     res.status(200).send({ message: `stub message para ${req.params.lugarID}` });
 }
 
+function updateLugar (req, res){
+    const lugarID = req.params.lugarID;
+    const bodyLugarUpdate = req.body;
+
+    /* lugarModel.findByIdAndUpdate(lugarID, req.body, function (err, post) {
+        if (err) return res.status(500).message({ error: `${err}` });
+        
+        res.json(post);
+    });*/
+
+    lugarModel.findById(lugarID, (err, lugar) => {
+        if (!lugar) 
+            return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
+
+        lugar.nombre           = req.body.nombre;
+        lugar.redes[0].gateway = req.body.gateway; // ipOps.toLong(req.body.gateway);
+
+        lugar.save((err, lugarGuardado) => {
+            if (err) 
+                return res.status(400).send({ Error: err });
+
+            res.status(200).send({ lugarGuardado });
+        });
+        /* lugar.update(bodyLugarUpdate, { runValidators: true }, function (err, lugarUpdated) {
+            if (err) 
+                return res.status(500).send({ message: `Error al actulizar ${err}` });
+
+            res.status(200).send ({ message: `ok ${lugarUpdated}` });
+        });*/
+    });
+}
+
 module.exports = {
     getLugares,
     saveLugar,
-    getLugar
+    getLugar,
+    updateLugar
 };

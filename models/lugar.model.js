@@ -36,8 +36,8 @@ const lugarSchema = mongoose.Schema({
     redes: [redSchema],
     _consultorios: [mongoose.Schema.Types.ObjectId],
     audit: {
-      creadoEn: { type: Date, defaults: Date.now() },
-      actualizadoEn: { type: Date, defaults: Date.now() },
+      creadoEn: { type: Date },
+      actualizadoEn: { type: Date },
       _creadoPorID: mongoose.Schema.Types.ObjectId,
       _actualizadoPorID: mongoose.Schema.Types.ObjectId
     }
@@ -49,14 +49,21 @@ Requiere menos trabajo hacerlo a "mano" desde el front-end/angular*/
 
 lugarSchema.pre('save', function (next) {
   if (this.isDirectModified('redes')) {
-    // TODO: comprobar si esto funciona en el update
-    this.redes.forEach()
-      // Iterar sobre las redes para ver cual es la que cambia (directModified)
-    console.log('aqui se ha cambiado algo');
+    // FIXME:  esta parte no va y encima resta una hora la parte de abajo que si chuta
+    this.redes.forEach((red) => {
+      if (red.isNew)
+        red.audit.creadoEn = Date.now();
+      if (red.isModified()) {
+        console.log(`Detecta actualizacion de alguna red  ${Date.now()}`);
+        red.audit.actualizadoEn = Date.now();
+      }
+    });
   }
 
-  if (this.isModified())
+  if (this.isModified()) {
+    console.log(`Detecta actualizacion general  ${Date.now()}`);
     this.audit.actualizadoEn = Date.now();
+  }
   
   if (this.isNew)
     this.audit.creadoEn = Date.now();

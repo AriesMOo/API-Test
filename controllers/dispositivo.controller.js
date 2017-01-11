@@ -49,7 +49,7 @@ function testAggregation (req, res) {
     
     // De esta forma devuelve una sola red en redes -> redes { cidr: ,gateway: ,tipo: ,_id_: } que es la del objeto de busqueda
     // Asi se puede acceder directamente a ella de forma mucho mas comoda (aunque la busqueda es mas chunga)
-    const netID = '586e4f070d061f2688a76d00';
+    const netID = '587140348f9d1bc5e56e0e00'; // '586e4f070d061f2688a76d00';
 
     lugarModel.find({}, (err, lugares) => {
         console.log(lugares.redes);
