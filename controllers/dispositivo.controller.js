@@ -29,7 +29,7 @@ function saveDispositivo (req, res) {
         });*/
         newDispositivo.IPs.push({ IP: ipOps.toLong(ip), networkID: redID });
         newDispositivo.nombre = nombre;
-        newDispositivo.audit._creadoPorID = userID;
+        // newDispositivo.audit._creadoPorID = userID;
     } else 
 		return res.status(400).send({ message: 'Error: No se han proporcionado los datos necesarios (nombre, IP y/o ID de la red)' });
 
@@ -49,11 +49,17 @@ function testAggregation (req, res) {
     
     // De esta forma devuelve una sola red en redes -> redes { cidr: ,gateway: ,tipo: ,_id_: } que es la del objeto de busqueda
     // Asi se puede acceder directamente a ella de forma mucho mas comoda (aunque la busqueda es mas chunga)
+    const netID = '586e4f070d061f2688a76d00';
+
+    lugarModel.find({}, (err, lugares) => {
+        console.log(lugares.redes);
+    });
+
     lugarModel.aggregate(
         [ 
             { $unwind:  '$redes' },
             // { $project: { redes: 1 } },
-            { $match: { 'redes._id': mongoose.Types.ObjectId('587140348f9d1bc5e56e0ec5') } }
+            { $match: { 'redes._id': mongoose.Types.ObjectId(netID) } }
         ])
         .exec(function (err, result) {
             res.status(200).send({ message: result });

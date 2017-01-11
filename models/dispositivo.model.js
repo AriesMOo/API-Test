@@ -9,7 +9,7 @@ const dispositivoSchema = new mongoose.Schema({
   nombre: { type: String, required: true, unique: true },
   IPs: [{
     IP: { type: Number, unique: false },
-    networkID: { type: mongoose.Schema.Types.ObjectId }
+    networkID: { type: mongoose.Schema.Types.ObjectId, ref: 'lugarModel.redes' }
   }],
   tipo: { type: String, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada'] },
   datosTecnicos: {
@@ -58,7 +58,7 @@ dispositivoSchema.pre('save', true, function (next, done) {
 
   if (this.isNew)
     this.audit.creadoEn = Date.now();
-    // No hace falta tocar el actualizado. Al crearlo se modifica implcitamente
+    // No hace falta tocar el actualizado. Al crearlo se modifica implcitamente*/
 
   next();
 });
