@@ -1,6 +1,7 @@
 'use strict';
 
 const ipOps      = require('ip');
+const _          = require('lodash');
 const lugarModel = require('../models/lugar.model');
 
 function getLugares (req, res) {
@@ -51,11 +52,38 @@ function updateLugar (req, res){
         res.json(post);
     });*/
 
-    lugarModel.findById(lugarID, (err, lugar) => {
+    lugarModel.findById(lugarID, function (err, lugar){
         if (!lugar) 
             return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
+       
+        /* TODO: iterar sobre los campos pasados en req.body y para cada uno, 
+        validar con cada path que este ok. Si todos estan ok, insertarlos en un 
+        objeto nuevo para actualizar hacer un update? */
+        
+        // Metemos los campos del schema en un array schemaPaths
+        let schemaPaths = [];
+        lugar.schema.eachPath(function (path){
+            schemaPaths.push(path);
+        });
 
-        lugar.nombre           = req.body.nombre;
+        console.log(schemaPaths);
+        // Iteramos sobre cada parametro pasado en el body, a ver si esta en el schema
+        _.each(req.body, function (value, key){
+            console.log(`key: ${key} - value: ${value}`);
+            
+            const pathEncontrado = _.find(schemaPaths, key);
+            // FIXME: -> con esto igual?? for( let i=0; i<schemaPaths.length; i++){}
+            if (!pathEncontrado){
+                res.status(400).send({ Error: `${key} no existe en la BBDD. No se actualiza nada --> ${pathEncontrado}` });
+            }
+            /* else 
+                lugar.key = value;*/
+        });
+
+        // console.log(lugar);
+        
+
+        /* lugar.nombre           = req.body.nombre;
         lugar.redes[0].gateway = req.body.gateway; // ipOps.toLong(req.body.gateway);
 
         lugar.save((err, lugarGuardado) => {
@@ -63,8 +91,10 @@ function updateLugar (req, res){
                 return res.status(400).send({ Error: err });
 
             res.status(200).send({ lugarGuardado });
-        });
-        /* lugar.update(bodyLugarUpdate, { runValidators: true }, function (err, lugarUpdated) {
+        });*/
+
+
+        /* lugar.update(req.body, { runValidators: true }, function (err, lugarUpdated) {
             if (err) 
                 return res.status(500).send({ message: `Error al actulizar ${err}` });
 
