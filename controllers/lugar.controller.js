@@ -1,7 +1,6 @@
 'use strict';
 
 const ipOps      = require('ip');
-const _          = require('lodash');
 const lugarModel = require('../models/lugar.model');
 
 function getLugares (req, res) {
@@ -13,29 +12,41 @@ function getLugares (req, res) {
     });
 }
 
-// TODO: para los telefonos, las redes y los consultorios (y los arrays en general)
-// es mejor hacer una funcion aparte (con su ruta adicional) en paln /api/eaps/eapID/actualizarDireccion
+// NOTA: para los telefonos, las redes y los consultorios (y los arrays en general)
+// es mejor hacer una funcion aparte (con su ruta adicional) en plan /api/eaps/eapID/actualizarDireccion
 // Si hay dos telefonos que poner/actualizar, habria que llamar 2 veces a la ruta desde el front-end/angular
 // O en su defecto, trincar la primera directametne, y la 2ª hacerlo con actualizacion
 function saveLugar (req, res) {
+    const userID = req.userID; // TODO: incluir en el audit. Siempre habra un userID por el ensureAuthentication
     let nuevoLugar = new lugarModel();
-    let userID = req.userID; // TODO: incluir en el audit. Siempre habra un userID por el ensureAuthentication
+    
+    // Ñapeamos esto para evitar que nos tire erro la funcion que parsea el body
+    let cidr = req.body.cidr;
+    delete req.body.cidr;
+    let gateway = ipOps.toLong(req.body.gateway);
+    delete req.body.gateway;
+    let tipoRed = req.body.tipoRed;
+    delete req.body.tipoRed;
 
-    nuevoLugar.esCentroSalud = req.body.esCentroSalud;
-    nuevoLugar.codigo = req.body.codigo;
-    nuevoLugar.nombre = req.body.nombre;
-    nuevoLugar.redes.push({
-        cidr: req.body.cidr,
-        gateway: ipOps.toLong(req.body.gateway),
-        tipo: req.body.tipoRed,
-    });
+    nuevoLugar = _extraeConformaValidaBodyData(req.body, nuevoLugar);
+    if (nuevoLugar instanceof Error)
+        return res.status(400).send({ Error: `${nuevoLugar.message}` });
+    else {
+        // Temporalmente le añadimos la red asi
+        nuevoLugar.redes.push({
+            cidr: cidr,
+            gateway: gateway,
+            tipo: tipoRed,
+        });
 
-    nuevoLugar.save((err, lugarGuardado) => {
-        if (err) 
-            return res.status(500).send({ message: `Error: No se ha podido guardar en la BBDD. ${err}` });
+        //FIXME: comprobar que al menos los campos oblitatorios estan presentes (schmea.requiredPaths)
+        nuevoLugar.save(function (err, lugarGuardado) {
+            if (err) 
+                return res.status(500).send({ message: `Error: No se ha podido guardar en la BBDD. ${err}` });
 
-        res.status(200).send({ lugar: lugarGuardado });
-    });
+            res.status(200).send({ lugarGuardado });
+        });
+    }
 }
 
 function getLugar (req, res) {
@@ -44,68 +55,152 @@ function getLugar (req, res) {
 
 function updateLugar (req, res){
     const lugarID = req.params.lugarID;
-    const bodyLugarUpdate = req.body;
-
-    /* lugarModel.findByIdAndUpdate(lugarID, req.body, function (err, post) {
-        if (err) return res.status(500).message({ error: `${err}` });
-        
-        res.json(post);
-    });*/
+    const userID = req.userID; // TODO: incluir en el audit. Siempre habra un userID por el ensureAuthentication
 
     lugarModel.findById(lugarID, function (err, lugar){
         if (!lugar) 
             return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
-       
-        /* TODO: iterar sobre los campos pasados en req.body y para cada uno, 
-        validar con cada path que este ok. Si todos estan ok, insertarlos en un 
-        objeto nuevo para actualizar hacer un update? */
         
-        // Metemos los campos del schema en un array schemaPaths
-        let schemaPaths = [];
-        lugar.schema.eachPath(function (path){
-            schemaPaths.push(path);
-        });
+        let lugarActualizado = _extraeConformaValidaBodyData(req.body, lugar);
+        if (lugarActualizado instanceof Error)
+            return res.status(400).send({ Error: `${lugarActualizado.message}` });
+        else {
+            lugarActualizado.save(function (err, lugarGuardado) {
+                if (err) 
+                    return res.status(500).send({ Error: `Problema al guardar el documento en la BBDD --> ${err}` });
 
-        console.log(schemaPaths);
-        // Iteramos sobre cada parametro pasado en el body, a ver si esta en el schema
-        _.each(req.body, function (value, key){
-            console.log(`key: ${key} - value: ${value}`);
-            
-            const pathEncontrado = _.find(schemaPaths, key);
-            // FIXME: -> con esto igual?? for( let i=0; i<schemaPaths.length; i++){}
-            if (!pathEncontrado){
-                res.status(400).send({ Error: `${key} no existe en la BBDD. No se actualiza nada --> ${pathEncontrado}` });
-            }
-            /* else 
-                lugar.key = value;*/
-        });
-
-        // console.log(lugar);
-        
-
-        /* lugar.nombre           = req.body.nombre;
-        lugar.redes[0].gateway = req.body.gateway; // ipOps.toLong(req.body.gateway);
-
-        lugar.save((err, lugarGuardado) => {
-            if (err) 
-                return res.status(400).send({ Error: err });
-
-            res.status(200).send({ lugarGuardado });
-        });*/
-
-
-        /* lugar.update(req.body, { runValidators: true }, function (err, lugarUpdated) {
-            if (err) 
-                return res.status(500).send({ message: `Error al actulizar ${err}` });
-
-            res.status(200).send ({ message: `ok ${lugarUpdated}` });
-        });*/
+                res.status(200).send({ lugarGuardado });
+            });
+        }
     });
+}
+
+// REDES 
+let redesHandler = {
+    //NOTA: en un futuro quiza haga falta hacer un get de redes (para un EAP y por ID directamente)
+    anadeRed: function (req, res) {
+        //TODO: comprobar 1) si ya existe en el array 2) que vengan todos los campos en body y 3) si hay una red que solapa en algun otro EAP(lugar) -> find cidr de todas las redes de todos los eaps
+    },
+    updateRed: function (req, res){
+        // TODO: comprobar si existe la red solo. El resto ya esta validado
+        // TODO: comprobar que actualiza el audit -> actualizado a las
+    },
+    borraRed: function (req, res){
+        // TODO: comprobar que existe antes
+    }
+};
+
+// CONSULTORIOS
+let consultoriosHandler = {
+    anadeConsultorio: function (req, res){
+        const consultorioID = req.body.consultorioID;
+        const centroID = req.params.lugarID;
+
+        if (!consultorioID)
+            return res.status(400).send({ message: 'No se ha suministrado ID de consultorio' });
+        
+        lugarModel.findById(consultorioID, function (err, consultorio){
+            if (!consultorio)
+                return res.status(400).send({ message: 'ID no corresponde con ningun consultorio' });
+
+            if (consultorio.esCentroSalud)
+                return res.status(400).send({ message: 'El ID del consultorio es un centro de salud (no se pueden anidar centros de salud)' }); 
+        });
+
+        lugarModel.findById(centroID, function (err, centroSalud){
+            if (!centroSalud) 
+                return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
+            
+            if (!centroSalud.esCentroSalud)
+                return res.status(400).send({ message: 'El ID del EAP es un consultorio y no puede tener asociados otros consultorios' }); 
+                //TODO: pasar este metodo a validators del model con isNew (recorrer todos los consultoriosID y si algunos es isNew revisar que )
+                // NO NO, mejor comprobar que si hay consultorios, sea pq el flag esCentroSalud es igual a true
+
+            console.log(centroSalud);                       
+            centroSalud._consultorios.push(consultorioID);
+            console.log('==================');
+            console.log(centroSalud);
+            centroSalud.save(function (err,centroGuardado){
+                if (err) 
+                    return res.status(500).send({ Error: `Problema al guardar el documento en la BBDD --> ${err}` });
+
+                res.status(200).send({ centroGuardado });
+            });
+
+        });
+    },
+    borraConsultorio: function (req, res){
+
+    }
+};
+
+
+// function updateConsultario (req, res){
+//     OJO: se actualiza un lugar(eap) directamente. Aqui no se hace nada (borar _id o añandir _id solo)
+// }
+
+
+// TELEFONOS
+function anadeTelefono (req, res){
+
+}
+
+function updateTelefono (req, res){
+
+}
+
+function borraTelefono (req, res){
+
+}
+
+/**
+ * Ahorra el hecho de estar haciendo. Especialmente util para los updates.
+ *      model.prop1 = req.body.prop1; 
+ *      model.prop2 = req.body.prop2; 
+ *      model.prop3 = req.body.prop3;
+ * Ademas, revisa que los campos pasados esten contemplados en el schemma del 
+ * modelo, de forma que si hay un typo o se quiere actualizar algo que no existe
+ * en el propio modelo, se avisa y no se hace nada. 
+ * Adicionalmente, se puede intentar validar sin ejecutar el metodo save o update
+ */
+function _extraeConformaValidaBodyData (bodyData, model) {
+    // Metemos los campos del schema en un array schemaPaths para comprobar despues
+    let schemaPaths = [];
+    model.schema.eachPath(function (path){
+        schemaPaths.push(path);
+    });
+    
+    // Iteramos sobre cada parametro pasado en el body, a ver si esta en el schema
+    // _.each(req.body, function (value, key){ -> con esto no escapa del bucle (each) al poner return res.status(400)
+    for (let key in bodyData) {
+        // if (req.body.hasOwnProperty(key)) { (no hace falta pq no hay metodos base heredados [prototipados])
+        let pathValido = false;
+        
+        for (let i = 0; i < schemaPaths.length; i++){
+            if (key === schemaPaths[i]){
+                pathValido = true;
+                break;
+            }
+        }
+
+        if (!pathValido)
+            return new Error(`El/la ${key} pasado/a al server no existe en la estructura de la BBDD`);
+        else 
+            model[key] = bodyData[key];
+    }
+    
+    // OJO: Que pase la validacion no significa que sea valido del todo
+    // (no mira duplicaciones de clave [unique], y el tema de los campos con arrays)
+    // validarlo aqui NO SIRVE (model.validate(fn))
+
+    return model;
 }
 
 module.exports = {
     getLugares,
     saveLugar,
     getLugar,
-    updateLugar
+    updateLugar,
+    redesHandler,
+    consultoriosHandler
 };

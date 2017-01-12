@@ -21,11 +21,16 @@ apiRouter.get('/', (req, res) => {
 
 /* test  */ 
 apiRouter.get('/testAggregation', dispositivoController.testAggregation);
+
 apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
 apiRouter.post('/dispositivo', dispositivoController.saveDispositivo);
+
 apiRouter.get('/eaps', lugaresController.getLugares);
 apiRouter.post('/eap', lugaresController.saveLugar);
 apiRouter.put('/eap/:lugarID', lugaresController.updateLugar);
+
+apiRouter.post('/eap/:lugarID/consultorios', lugaresController.consultoriosHandler.anadeConsultorio);
+apiRouter.delete('/eap/:lugarID/consultorios/:consultorioID', lugaresController.consultoriosHandler.borraConsultorio);
 /** test */
 
 // Rutas de API

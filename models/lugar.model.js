@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const ipOps    = require('ip');
 
 const redSchema = new mongoose.Schema({ 
   cidr: { type: String, unique: true, required: true },
@@ -15,14 +16,13 @@ const redSchema = new mongoose.Schema({
   }
 });
 
-// TODO: comprobar con RegEx que se cumplen algunos Strings (IE: IPS, CIDR, etc)
 const lugarSchema = mongoose.Schema({
     esCentroSalud: { type: Boolean, required: true },
     codigo: { type: String, required: true, unique: true },
     nombre: { type: String, required: true },
     direccion: {
       via: String,
-      numero: String,
+      numero: Number,
       cp: Number,
       localidad: String,
       notas: String
@@ -32,9 +32,9 @@ const lugarSchema = mongoose.Schema({
         numero: String,
         notas: String
     }],
-    aytoAsociado: String,
+    aytoAsociado: String, 
     redes: [redSchema],
-    _consultorios: [mongoose.Schema.Types.ObjectId],
+    _consultorios: [{ type: mongoose.Schema.Types.ObjectId, unique: true }],
     audit: {
       creadoEn: { type: Date },
       actualizadoEn: { type: Date },
@@ -43,10 +43,36 @@ const lugarSchema = mongoose.Schema({
     }
 });
 
-/* NO se puede aplicar esto porque las redes son un lio para actualizar campos 
-de _actualizadoPOrID y demas (al ser una array, hay que buscar el actualizad)
-Requiere menos trabajo hacerlo a "mano" desde el front-end/angular*/
+// VALIDACIONES
+lugarSchema.pre('validate', function (next){
+  // Codigo
+  if (!/^(1703)\d{2}$/.test(this.codigo))
+    return next(Error('El codigo debe ser en forma 1703xx (donde las "x" son otros numeros")'));
+  
+  // CIDR de las redes
+  const regExCIDR = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$/
+  for (let i = 0; i < this.redes.length; i++) {
+    console.log(`gateway comprobados: ${this.redes[i].cidr}`);
+    if (!regExCIDR.test(this.redes[i].cidr)) 
+      return next(Error(`El cidr ${this.redes[i].cidr} no tiene un formato valido`));
+  }
 
+  // Gateway de las redes -> BUG: no se puede hacer pq es un NUMBER. Esto hay que revisarlo en el cliente/controlador TODO:
+  // OJO: de esta forma falla a veces (con 10.36.29/9 de CIDR y 10.36.29.999 de GW)
+  for (let i = 0; i < this.redes.length; i++) {
+    let ipGw = ipOps.fromLong(this.redes[i].gateway);
+    if (!ipOps.cidrSubnet(this.redes[i].cidr).contains(ipGw)) 
+      return next(Error(`El gateway ${ipGw} no pertenece al rango del CIDR o no tiene un formato válido`));
+  }
+
+  // Consultorios (con lugarMOdel.findById) TODO:
+
+  // Users de audit del lugar y de las redes (con userModel.findById)
+
+  next();
+});
+
+// STUFF TODO BEFORE SAVE DATA
 lugarSchema.pre('save', function (next) {
   if (this.isDirectModified('redes')) {
     // FIXME:  esta parte no va y encima resta una hora la parte de abajo que si chuta
