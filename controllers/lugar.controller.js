@@ -39,7 +39,7 @@ function saveLugar (req, res) {
             tipo: tipoRed,
         });
 
-        //FIXME: comprobar que al menos los campos oblitatorios estan presentes (schmea.requiredPaths)
+        // FIXME: comprobar que al menos los campos oblitatorios estan presentes (schmea.requiredPaths)
         nuevoLugar.save(function (err, lugarGuardado) {
             if (err) 
                 return res.status(500).send({ message: `Error: No se ha podido guardar en la BBDD. ${err}` });

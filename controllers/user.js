@@ -85,6 +85,10 @@ function ensureAuthenticationMiddleware (req, res, next) {
 		return res.status(401).send({ message: 'El token ha expirado' });
 
 	req.userId = payload.sub;	// NOTE: se añade el id del usuario (decodificado del token y ya validado)
+	// FIXME: con este sistema con enviar un token valido y no caducado ya valdria. Hay que incluir en la creacion del token 
+	// el passw, y validarlo de forma parecida a la funcion authenticate (con su _id y el passw sobra) pq si no, si el user 
+	// ha cambiado la contrasena el token no cambia. Y peor, si el usuario borra su cuenta, el token sigue siendo valido 
+	// durante los dias que resten. 
 	next();
 }
 

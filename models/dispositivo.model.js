@@ -30,6 +30,12 @@ const dispositivoSchema = new mongoose.Schema({
   }
 });
 
+// TODO: incorporar un pre('validate') para las validaciones 
+// TODO: hacer una propiedad lugarID: en el array de IPs (virtual a ver si asi va y si no.. habra que guardarla)
+        // Para hacer populates en las consultas (very comodo hoyga)
+        // En su defecto tb puede crearse un metodo statico (o 'normal')
+        // NOTA: lo mejor es guardar el lugarID dentro de IPs desde el pre('sava')
+
 // Debe tener la bandera true pq si no, no funciona bien el next(new Error()) (espera a que finalice todo con done) y al final le casca un next()
 // http://stackoverflow.com/questions/13582862/mongoose-pre-save-async-middleware-not-working-as-expected
 dispositivoSchema.pre('save', true, function (next, done) {
@@ -63,9 +69,4 @@ dispositivoSchema.pre('save', true, function (next, done) {
   next();
 });
 
-let dispositivoModel = mongoose.model('Dispositivo', dispositivoSchema);
-module.exports = dispositivoModel;
-
-/* TODO: ahora con dispositivoModel se pueden usar metodos estaticos, no?  
-    1) getRed() (devuelve una red con agregacion)
-    2) getRedes() (devuelve array redes con findOne */
+module.exports = mongoose.model('Dispositivo', dispositivoSchema);

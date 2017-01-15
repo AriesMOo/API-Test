@@ -35,3 +35,5 @@ mongoose.connect(config.db, (err, res) => {
 app.listen(config.port, () => {
 	console.log(`Esto marcha en http://localhsot:${config.port}`);
 });
+
+module.exports = app; // for testing (in mocha ;))
