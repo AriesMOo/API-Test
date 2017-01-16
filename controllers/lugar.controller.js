@@ -21,23 +21,23 @@ function saveLugar (req, res) {
     let nuevoLugar = new lugarModel();
     
     // Ñapeamos esto para evitar que nos tire erro la funcion que parsea el body
-    let cidr = req.body.cidr;
+    /* let cidr = req.body.cidr;
     delete req.body.cidr;
     let gateway = ipOps.toLong(req.body.gateway);
     delete req.body.gateway;
     let tipoRed = req.body.tipoRed;
-    delete req.body.tipoRed;
+    delete req.body.tipoRed;*/
 
-    nuevoLugar = _extraeConformaValidaBodyData(req.body, nuevoLugar);
+    nuevoLugar = _extraeConformaBodyData(req.body, nuevoLugar);
     if (nuevoLugar instanceof Error)
         return res.status(400).send({ Error: `${nuevoLugar.message}` });
     else {
         // Temporalmente le añadimos la red asi
-        nuevoLugar.redes.push({
+        /* nuevoLugar.redes.push({
             cidr: cidr,
             gateway: gateway,
             tipo: tipoRed,
-        });
+        });*/
 
         // FIXME: comprobar que al menos los campos oblitatorios estan presentes (schmea.requiredPaths)
         nuevoLugar.save(function (err, lugarGuardado) {
@@ -61,7 +61,7 @@ function updateLugar (req, res){
         if (!lugar) 
             return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
         
-        let lugarActualizado = _extraeConformaValidaBodyData(req.body, lugar);
+        let lugarActualizado = _extraeConformaBodyData(req.body, lugar);
         if (lugarActualizado instanceof Error)
             return res.status(400).send({ Error: `${lugarActualizado.message}` });
         else {
@@ -74,21 +74,6 @@ function updateLugar (req, res){
         }
     });
 }
-
-// REDES 
-let redesHandler = {
-    //NOTA: en un futuro quiza haga falta hacer un get de redes (para un EAP y por ID directamente)
-    anadeRed: function (req, res) {
-        //TODO: comprobar 1) si ya existe en el array 2) que vengan todos los campos en body y 3) si hay una red que solapa en algun otro EAP(lugar) -> find cidr de todas las redes de todos los eaps
-    },
-    updateRed: function (req, res){
-        // TODO: comprobar si existe la red solo. El resto ya esta validado
-        // TODO: comprobar que actualiza el audit -> actualizado a las
-    },
-    borraRed: function (req, res){
-        // TODO: comprobar que existe antes
-    }
-};
 
 // CONSULTORIOS
 let consultoriosHandler = {
@@ -154,27 +139,30 @@ function borraTelefono (req, res){
 }
 
 /**
- * Ahorra el hecho de estar haciendo. Especialmente util para los updates.
+ * Ahorra el hecho de estar haciendo
  *      model.prop1 = req.body.prop1; 
  *      model.prop2 = req.body.prop2; 
  *      model.prop3 = req.body.prop3;
+ * Especialmente util para los updates.
  * Ademas, revisa que los campos pasados esten contemplados en el schemma del 
  * modelo, de forma que si hay un typo o se quiere actualizar algo que no existe
  * en el propio modelo, se avisa y no se hace nada. 
  * Adicionalmente, se puede intentar validar sin ejecutar el metodo save o update
  */
-function _extraeConformaValidaBodyData (bodyData, model) {
+function _extraeConformaBodyData (bodyData, model) {
     // Metemos los campos del schema en un array schemaPaths para comprobar despues
     let schemaPaths = [];
     model.schema.eachPath(function (path){
         schemaPaths.push(path);
     });
+
+    // console.log(schemaPaths);
     
     // Iteramos sobre cada parametro pasado en el body, a ver si esta en el schema
     // _.each(req.body, function (value, key){ -> con esto no escapa del bucle (each) al poner return res.status(400)
     for (let key in bodyData) {
         // if (req.body.hasOwnProperty(key)) { (no hace falta pq no hay metodos base heredados [prototipados])
-        let pathValido = false;
+        /* let pathValido = false;
         
         for (let i = 0; i < schemaPaths.length; i++){
             if (key === schemaPaths[i]){
@@ -184,8 +172,8 @@ function _extraeConformaValidaBodyData (bodyData, model) {
         }
 
         if (!pathValido)
-            return new Error(`El/la ${key} pasado/a al server no existe en la estructura de la BBDD`);
-        else 
+            return new Error(`El parametro ${key} pasado al server no existe en la estructura de la BBDD`);
+        else  */
             model[key] = bodyData[key];
     }
     

@@ -34,6 +34,11 @@ const userSchema = mongoose.Schema({
     default: Date.now() // NOTE: si no se pone nada, se pone la fecha del server AUTOMATICAMENTE !
   }, 
   lastLogin: Date
+},{
+    timestamps: {
+      creadoEn: 'created_at',
+      actualizadoEn: 'updated_at'
+    }
 });
 
 /* Funcion que se invoca ANTES (pre) de salvar -> (next es el siguiente hook, 

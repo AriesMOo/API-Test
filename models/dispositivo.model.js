@@ -9,7 +9,7 @@ const dispositivoSchema = new mongoose.Schema({
   nombre: { type: String, required: true, unique: true },
   IPs: [{
     IP: { type: Number, unique: false },
-    networkID: { type: mongoose.Schema.Types.ObjectId, ref: 'lugarModel.redes' }
+    _networkID: { type: mongoose.Schema.Types.ObjectId, ref: 'Redes' }
   }],
   tipo: { type: String, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada'] },
   datosTecnicos: {
@@ -23,11 +23,14 @@ const dispositivoSchema = new mongoose.Schema({
   ubicacionFisicaEnEAP: String,
   notas: String,
   audit: {
-    creadoEn: { type: Date, defaults: Date.now() },
-    actualizadoEn: { type: Date, defaults: Date.now() },
     _creadoPorID: mongoose.Schema.Types.ObjectId,
     _actualizadoPorID: mongoose.Schema.Types.ObjectId
   }
+},{
+    timestamps: {
+      creadoEn: 'created_at',
+      actualizadoEn: 'updated_at'
+    }
 });
 
 // TODO: incorporar un pre('validate') para las validaciones 
@@ -58,13 +61,6 @@ dispositivoSchema.pre('save', true, function (next, done) {
         done();
     });
   });
-  
-  if (this.isModified())
-    this.audit.actualizadoEn = Date.now();
-
-  if (this.isNew)
-    this.audit.creadoEn = Date.now();
-    // No hace falta tocar el actualizado. Al crearlo se modifica implcitamente*/
 
   next();
 });
