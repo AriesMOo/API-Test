@@ -2,7 +2,7 @@
 
 const express        = require('express');
 const mongoose       = require('mongoose');
-const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP 
+const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP
 const morgan         = require('morgan');
 const sriracha       = require('sriracha');
 const apiRouter      = require('./routes/apiRoutes');
@@ -25,11 +25,15 @@ app.use('/user', authUserRouter);
 
 // Configuramos conexion con BBDD, a traves de mongoose (si no existe la BBDD se crea en el primer POST -en este caso shop-)
 mongoose.connect(config.db, (err, res) => {
-  if (err) 
+  if (err)
     return console.error(`Error al conectar con la BBDD: ${err}`);
-  else 
+  else
     console.log('Conexión a BBDD establecida...');
 });
+
+// Asignamos las promesas standard de node (ES6) para que mongoose las use
+// http://mongoosejs.com/docs/promises.html
+mongoose.Promise = global.Promise;
 
 // Arrancamos la aplicacion en el puerto especificado
 app.listen(config.port, () => {

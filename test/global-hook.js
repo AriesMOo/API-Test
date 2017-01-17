@@ -6,5 +6,9 @@ const dbURI 	 = require('../config/config').db;
 
 before('Comprueba que mongoose este arriba. Si no lo esta, genera la conexion', function (done){
 	if (mongoose.connection.db) return done();
-	else mongoose.connect(dbURI, done);
+	else {
+    // Usamos Promesas standar de node (ES6) y conectamos mongoose a Mongo
+    mongoose.Promise = global.Promise;
+    mongoose.connect(dbURI, done);
+  }
 });

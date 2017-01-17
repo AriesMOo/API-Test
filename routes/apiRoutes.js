@@ -13,32 +13,33 @@ apiRouter.get('/', (req, res) => {
   res.status(200)
      .send(`<h2>API Directory</h2>
             <ul>
-              <li><a href="http://localhost:${config.port}/api/products">Products</a></li>              
+              <li><a href="http://localhost:${config.port}/api/products">Products</a></li>
               <li><a href="http://localhost:${config.port}/api/dispositivos">Dispositivos</a></li>
-              <li><a href="http://localhost:${config.port}/api/eaps">EAPs (lugares)</a></li>                                          
+              <li><a href="http://localhost:${config.port}/api/eaps">EAPs (lugares)</a></li>
             </ul>`);
 });
 
-/* test  */ 
+/* test  */
 apiRouter.get('/testAggregation', dispositivoController.testAggregation);
 
 apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
-apiRouter.post('/dispositivo', dispositivoController.saveDispositivo);
+apiRouter.post('/dispositivos', dispositivoController.saveDispositivo);
 
-// apiRouter.get('/eaps', lugaresController.getLugares);
-// apiRouter.post('/eap', lugaresController.saveLugar);
 apiRouter.route('/eaps')
   .get(lugaresController.getLugares)
-  .post(lugaresController.saveLugar);
-apiRouter.put('/eap/:lugarID', lugaresController.updateLugar);
+  .post(lugaresController.save);
+apiRouter.route('/eaps/:lugarID')
+  .get(lugaresController.getLugarConcreto)
+  .put(lugaresController.update)
+  .patch(lugaresController.patch);
+  // .delete(lugaresController.deleteProduct);
 
-apiRouter.post('/eap/:lugarID/consultorios', lugaresController.consultoriosHandler.anadeConsultorio);
-apiRouter.delete('/eap/:lugarID/consultorios/:consultorioID', lugaresController.consultoriosHandler.borraConsultorio);
+// apiRouter.post('/eaps/:lugarID/consultorios', lugaresController.consultoriosHandler.anadeConsultorio);
 /** test */
 
 // Rutas de API
 apiRouter.all('*', authController.ensureAuthenticationMiddleware);
-// Se protegen todas las rutas (apiRouter.all) 
+// Se protegen todas las rutas (apiRouter.all)
 apiRouter.get('/product/:productId', productController.getProduct);
 apiRouter.get('/products', productController.getProducts);
 apiRouter.post('/product', productController.saveProduct);
@@ -47,5 +48,5 @@ apiRouter.put('/product/:productId', productController.updateProduct);
 
 module.exports = apiRouter;
 
-// NOTE: OJO !! en app.js usamos esta ruta especificando que todas cuelgan de 
+// NOTE: OJO !! en app.js usamos esta ruta especificando que todas cuelgan de
 // /api, asi que todas las rutas de aqui son paara localhost/api/products, etc.
