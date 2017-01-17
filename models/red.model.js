@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const ipOps    = require('ip');
 
-const redSchema = new mongoose.Schema({ 
+const redSchema = new mongoose.Schema({
   cidr: { type: String, required: true, unique: true }, // Da problemas al guardar centros sin redes ()
   gateway: { type: Number, required: true },
   tipo: { type: String, required: true, enum: ['centro', 'medora', 'veterinarios/farmas', 'consultorios', 'rango viejo'] },
@@ -29,7 +29,7 @@ redSchema.pre('validate', function (next){
 
   // Gateway
   let ipGw = ipOps.fromLong(this.gateway);
-  if (!ipOps.cidrSubnet(this.cidr).contains(ipGw)) 
+  if (!ipOps.cidrSubnet(this.cidr).contains(ipGw))
       return next(Error(`El gateway ${ipGw} no pertenece al rango del CIDR o no tiene un formato válido`));
 });
 
