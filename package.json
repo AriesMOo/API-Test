@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
+    "start-win": "set DEBUG=*,-not_this node .\\node_modules\\nodemon\\bin\\nodemon.js .\\server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mik Pride (https://github.com/AriesMOo)",
@@ -15,7 +16,6 @@
     "body-parser": "^1.15.2",
     "crypto": "0.0.3",
     "express": "^4.14.0",
-    "express-winston": "^2.1.2",
     "ip": "^1.1.4",
     "jwt-simple": "^0.5.1",
     "lodash": "^4.17.4",
@@ -23,13 +23,13 @@
     "moment": "^2.17.1",
     "mongoose": "^4.7.5",
     "morgan": "^1.7.0",
-    "sriracha": "^1.0.0",
-    "winston": "^2.3.0"
+    "sriracha": "^1.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
+    "debug": "^2.6.0",
     "eslint": "^3.12.2",
     "mocha-mongoose": "^1.2.0",
     "nodemon": "^1.11.0",
