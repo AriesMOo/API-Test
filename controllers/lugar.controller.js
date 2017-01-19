@@ -4,7 +4,10 @@
 // parte del schema (POST, PUT) es IGNORARLOS SIN AVISAR. La respuesta puede ser
 // 200 - ok y no haber actualizado nada.
 
-const lugarModel = require('../models/lugar.model');
+
+const util           = require('util');
+const debugLugarCtrl = require('debug')('stockApp:lugar.controller');
+const lugarModel     = require('../models/lugar.model');
 
 function getLugares (req, res) {
   lugarModel.find({})
@@ -52,11 +55,13 @@ function update (req, res){
 }
 
 function patch (req, res) {
-  res(200).send({ message: '#STUB method -> pozi es un patch' });
+  debugLugarCtrl('PATCH req.headers -> ' + util.inspect(req.headers, false, 20, true));
+  debugLugarCtrl('PATCH req.body -> ' + util.inspect(req.body, false, 20, true));
+  res.status(200).send({ message: '#STUB method -> pozi es un patch' });
 }
 
 function deleteLugar (req, res) {
-  res(200).send({ message: '#STUB method -> es un delete' });
+  res.status(200).send({ message: '#STUB method -> es un delete' });
 }
 
 // CONSULTORIOS
