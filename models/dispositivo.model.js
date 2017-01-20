@@ -33,7 +33,7 @@ const dispositivoSchema = new mongoose.Schema({
     }
 });
 
-// TODO: incorporar un pre('validate') para las validaciones 
+// TODO: incorporar un pre('validate') para las validaciones
 // TODO: hacer una propiedad lugarID: en el array de IPs (virtual a ver si asi va y si no.. habra que guardarla)
         // Para hacer populates en las consultas (very comodo hoyga)
         // En su defecto tb puede crearse un metodo statico (o 'normal')
@@ -51,13 +51,13 @@ dispositivoSchema.pre('save', true, function (next, done) {
       lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId(conjuntoIP.networkID) }, (err, lugar) => {
         if (!lugar)
           return done(new Error('No hay ninguna red que conincida con el networkID pasado'));
-          
+
         // Porque sigue devolviendo un array con las redes que tenga (si existe alguna red que tenga la IP en el rango correcto)
         const ipToCheck = ipOps.fromLong(conjuntoIP.IP);
-        const redToCheck = _.find(lugar.redes, { '_id': conjuntoIP.networkID }); 
+        const redToCheck = _.find(lugar.redes, { '_id': conjuntoIP.networkID });
         if (!ipOps.cidrSubnet(redToCheck.cidr).contains(ipToCheck))
           return done(new Error('La IP está fuera del rango para la red seleccionada'));
-        
+
         done();
     });
   });

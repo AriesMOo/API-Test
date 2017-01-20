@@ -6,8 +6,8 @@ const mongoose       = require('mongoose');
 const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP
 const morgan         = require('morgan');
 const sriracha       = require('sriracha');
-const debug          = require('debug')('stockApp:server.js');
-const debugMongoose  = require('debug')('mongoose');
+const log4js         = require('log4js'); // Para sustituir a Morgan. Usado en app.use()
+const logger         = require('./config/log4js.config').getDefaultLogger();
 const apiRouter      = require('./routes/apiRoutes');
 const generalRouter  = require('./routes/generalRoutes');
 const authUserRouter = require('./routes/authUserRoutes');
@@ -15,18 +15,23 @@ const config         = require('./config/config');
 
 const app = express();
 
-// Configuramos express
-app.use(bodyParser.urlencoded({ extended: false }));
+// Configuracion generica de Exprss
+app.use(bodyParser.urlencoded( { extended: false } ));
 app.use(bodyParser.json());
-app.use(morgan('dev'));
-app.use('/admin', sriracha());
+app.use(log4js.connectLogger( logger, { level: 'auto' }) );
 
 // Si estamos en un entorno de desarrollo (no de produccion)
 if (!config.production){
-  debug('La aplicacion esta corriendo en modo DESARROLLO (con mensajes de debug)');
+  logger.setLevel('TRACE'); // Solo local. A nivel global esta en ./config/log4js
+
+  logger.info('La aplicacion esta corriendo en modo DESARROLLO (con mensajes de debug)');
+  app.use('/admin', sriracha());
+  // app.use(morgan('dev'));
+
   // mongoose.set('debug', true);
   mongoose.set('debug', (collectionName, method, query, doc) => {
-    debugMongoose('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);
+    logger.trace('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);
+    // debugMongoose('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);
     // debug(`${collectionName}.${method}`, util.inspect(query, false, 20), doc);
   });
 }
@@ -48,7 +53,7 @@ mongoose.connect(config.db, (err, res) => {
     console.log('Conexión a BBDD establecida...');
 });
 
-// Configuramos el/los routers segun rutas base para express
+// Configuramos routers con rutas base. A veces pude dar problemas si se hace antes/despuesde otros modulos
 app.use('/', generalRouter);
 app.use('/api', apiRouter);
 app.use('/user', authUserRouter);

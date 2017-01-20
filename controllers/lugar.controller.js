@@ -3,11 +3,9 @@
 // NOTA: el comportamiento por defecto cuando se pasan parametros que no forman
 // parte del schema (POST, PUT) es IGNORARLOS SIN AVISAR. La respuesta puede ser
 // 200 - ok y no haber actualizado nada.
-
-
-const util           = require('util');
-const debugLugarCtrl = require('debug')('stockApp:lugar.controller');
-const lugarModel     = require('../models/lugar.model');
+const util       = require('util');
+const lugarModel = require('../models/lugar.model');
+const logger     = require('../config/log4js.config').getDefaultLogger();
 
 function getLugares (req, res) {
   lugarModel.find({})
@@ -55,8 +53,8 @@ function update (req, res){
 }
 
 function patch (req, res) {
-  debugLugarCtrl('PATCH req.headers -> ' + util.inspect(req.headers, false, 20, true));
-  debugLugarCtrl('PATCH req.body -> ' + util.inspect(req.body, false, 20, true));
+  logger.trace('Esta pasando HEADERS -> ' + util.inspect(req.headers, false, 20, true));
+  logger.trace('Esta pasando BODY -> ' + util.inspect(req.body, false, 20, true));
   res.status(200).send({ message: '#STUB method -> pozi es un patch' });
 }
 
