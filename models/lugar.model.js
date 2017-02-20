@@ -34,13 +34,15 @@ const lugarSchema = mongoose.Schema({
 
 // VALIDACIONES
 lugarSchema.pre('validate', function (next){
-  // Codigo
-  if (!/^(1703)\d{2}$/.test(this.codigo))
+  // Codigo centros(2) y consultorios(4)
+  if (!/^(1703)\d{2}$/.test(this.codigo) && !/^(1703)\d{4}$/.test(this.codigo))
     return next(Error('El codigo debe ser en forma 1703xx (donde las "x" son otros numeros")'));
 
   // Consultorios (con lugarModel.findById)
 
   // Users de audit (con UserModel.findById)
+
+  // EAPs con la bandera de consultorios a false tiene que tener vacio el array de consultorios
 
   next();
 });

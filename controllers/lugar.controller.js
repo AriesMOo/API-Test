@@ -5,7 +5,7 @@
 // 200 - ok y no haber actualizado nada.
 const util       = require('util');
 const lugarModel = require('../models/lugar.model');
-const logger     = require('../config/log4js.config').getDefaultLogger();
+const logger     = require('../config/log4js.config').getLogger('lugarController');
 
 function getLugares (req, res) {
   lugarModel.find({})
@@ -45,6 +45,8 @@ function update (req, res){
       }
       lugar.audit._actualizdoPorID = req.userID; // Si no viene no pasa nada
 
+      logger.debug(`Lugar actualizado (antes de persistir) >> ${lugar}`);
+
       lugar.save()
         .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
         .catch(err => res.status(500).send(err));
@@ -53,8 +55,8 @@ function update (req, res){
 }
 
 function patch (req, res) {
-  logger.trace('Esta pasando HEADERS -> ' + util.inspect(req.headers, false, 20, true));
-  logger.trace('Esta pasando BODY -> ' + util.inspect(req.body, false, 20, true));
+  logger.debug('Esta pasando HEADERS -> ' + util.inspect(req.headers, false, 20, true));
+  logger.debug('Esta pasando BODY -> ' + util.inspect(req.body, false, 20, true));
   res.status(200).send({ message: '#STUB method -> pozi es un patch' });
 }
 

@@ -3,6 +3,7 @@
 // Resto de utilidades
 const chai       = require('chai');
 const chaiHttp   = require('chai-http');
+const logger     = require('../config/log4js.config').getLogger('lugarSpec');
 const lugarModel = require('../models/lugar.model');
 const should     = chai.should();
 const expect     = chai.expect;
@@ -18,7 +19,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		let armunia = {
 			esCentroSalud: true,
 			codigo: '170398',
-			nombre: 'Armunia - test',
+			nombre: 'Armunia - directo a BBDD',
 		};
 
 		it('Se puede salvar un centro con datos basicos (Armunia - 170301 - esCentroSalud)', function (done) {
@@ -260,6 +261,54 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 			it('No deberia poderse crear una red que solape el rango de otra');
 			it('Los campos audit de una red CREADA son correctos');
 			it('Los campos audit de una red MODIFICADA son correctos');
+      it('Se pude anadir un consultorio simple (CEMBRANOS) al centro ya creado antes (ARMUNIA)', function (done){
+        // Modelo base para Cembranos
+        const cembranos = {
+          esCentroSalud: false,
+          codigo: '17030136',
+          nombre: 'Cembranos'
+        };
+        let cembranosID;
+
+        // Se mete cembranos a la BBDD
+        let cproms = new lugarModel(cembranos);
+        cproms.save()
+          .then(cembranosSalvado => {
+            expect(cembranosSalvado.codigo).to.be.equal(cembranos.codigo);
+            expect(cembranosSalvado.nombre).to.be.equal(cembranos.nombre.toLowerCase());
+
+            cembranosID = cembranosSalvado._id;
+            logger.debug(`El ID de cembranos es >> ${cembranosID}`);
+          })
+          .catch(err => done(new Error(`Problemas para guardar Cembranos en la BBDD -> ${err}`)));
+
+        // Se incluye cembranos en el array de consultorios de armunia
+        lugarModel.findById(armuniaID)
+          .then(armunia => {
+            armunia._consultorios.push(cembranosID);
+
+            // Peticion HTTP
+            chai.request(server)
+              .put(`/eaps/${armuniaID}`)
+              .send(armunia)
+              .then(res => {
+                expect(res).have.status(200);
+                expect(res.body.lugarGuardado.length).equal(armunia.length);
+
+                done();
+              })
+              .catch(err => done(new Error(err.response.text)) );
+
+            /* armunia.save()
+              .then(armuniaSalvado => {
+                expect(armuniaSalvado._consultorios.length).to.be.equal(1);
+
+                // done();
+              })
+              .cath(err => done(new Error(`Problemas persistiendo la modificacion en Armunia -> ${err}`)));*/
+          })
+          .catch(err => done(new Error(`ArmuniaID no parece existir -> ${err}`)));
+      });
 		});
 	});
 });

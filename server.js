@@ -1,24 +1,23 @@
 'use strict';
 
-const util           = require('util'); // De node.js
 const express        = require('express');
 const mongoose       = require('mongoose');
 const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP
 const morgan         = require('morgan');
 const sriracha       = require('sriracha');
-const log4js         = require('log4js'); // Para sustituir a Morgan. Usado en app.use()
-const logger         = require('./config/log4js.config').getDefaultLogger();
+const logger         = require('./config/log4js.config').getLogger('InicioApp'); // .getDefaultLogger();
 const apiRouter      = require('./routes/apiRoutes');
 const generalRouter  = require('./routes/generalRoutes');
 const authUserRouter = require('./routes/authUserRoutes');
 const config         = require('./config/config');
+
+const loggerFichero = require('./config/log4js.config').getLogger('stockApp');
 
 const app = express();
 
 // Configuracion generica de Exprss
 app.use(bodyParser.urlencoded( { extended: false } ));
 app.use(bodyParser.json());
-app.use(log4js.connectLogger( logger, { level: 'auto' }) );
 
 // Si estamos en un entorno de desarrollo (no de produccion)
 if (!config.production){
@@ -26,14 +25,15 @@ if (!config.production){
 
   logger.info('La aplicacion esta corriendo en modo DESARROLLO (con mensajes de debug)');
   app.use('/admin', sriracha());
-  // app.use(morgan('dev'));
+  // app.use(log4js.connectLogger( logger, { level: 'auto' }) ); // Alternativa a Morgan (casi lo mismo) usando log4js
+  app.use(morgan('dev'));
 
-  // mongoose.set('debug', true);
-  mongoose.set('debug', (collectionName, method, query, doc) => {
+  mongoose.set('debug', true);
+  /* mongoose.set('debug', (collectionName, method, query, doc) => {
     logger.trace('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);
     // debugMongoose('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);
     // debug(`${collectionName}.${method}`, util.inspect(query, false, 20), doc);
-  });
+  });*/
 }
 
 
@@ -48,9 +48,9 @@ mongoose.Promise = global.Promise;
 // });
 mongoose.connect(config.db, (err, res) => {
   if (err)
-    return console.error(`Error al conectar con la BBDD: ${err}`);
+    return loggerFichero.error(`Error al conectar con la BBDD: ${err}`);
   else
-    console.log('Conexión a BBDD establecida...');
+    logger.info('Conexión a BBDD establecida...');
 });
 
 // Configuramos routers con rutas base. A veces pude dar problemas si se hace antes/despuesde otros modulos
@@ -60,5 +60,7 @@ app.use('/user', authUserRouter);
 
 // Arrancamos la aplicacion en el puerto especificado
 app.listen(config.port, () => {
-	console.log(`Esto marcha en http://localhsot:${config.port}`);
+	logger.info(`Esto marcha en http://localhsot:${config.port}`);
+  // loggerFichero.info('esto ye la hostia oh !! '); // Esto no se logea (nivel por defect ERROR)
+  // loggerFichero.error('esto ye un error de la hostia né !! '); // Esto si (a consola y a fichero)
 });

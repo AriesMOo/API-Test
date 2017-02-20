@@ -14,22 +14,22 @@ const baseUser = {
 };
 let tokenBaseUser = '';
 
-describe('[X] Unit test for user model and authentication features', function (){	
+describe('[X] Unit test for user model and authentication features', function (){
 	before('Remove all data from users collection', function (done){
 		userModel.remove({}, done);
 	});
 
 	describe('1) Pruebas basicas para el modelo USER', function (){
 		let idUser1, idUser2;
-		
+
 		describe('>Operaciones basicas directamente en BBDD (mongoose)', function (){
 			it('Creacion user basico', function (done){
-				new userModel({ 
-					email: 'pozi@yonose.com', 
-					password: 'pozi' 
+				new userModel({
+					email: 'pozi@yonose.com',
+					password: 'pozi'
 				}).save(function (err, userGuardado) {
 					if (err) return done(err);
-					
+
 					idUser1 = userGuardado._id;
 					done();
 				});
@@ -47,7 +47,7 @@ describe('[X] Unit test for user model and authentication features', function ()
 
 		describe('>Operaciones a traves de la web (node)', function (){
 			const server 	= 'http://localhost:3000';
-			
+
 			before('Remove all data from users collection', function (done){
 				userModel.remove({}, done);
 			});
@@ -75,12 +75,12 @@ describe('[X] Unit test for user model and authentication features', function ()
 	});
 
 	describe('2) Pruebas de autenticacion', function (){
-		const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1ODdhMTk4MWFkZjQ1OTIzM2ViZmE5YjMiLCJpYXQiOjE0ODQzOTY5MjksImV4cCI6MTQ4NTI2MDkyOX0.B16INb8FMwHMmVY5--nZbLZU4lIDFH4QHE2e791yQiQ';
-		
+		// const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1ODdhMTk4MWFkZjQ1OTIzM2ViZmE5YjMiLCJpYXQiOjE0ODQzOTY5MjksImV4cCI6MTQ4NTI2MDkyOX0.B16INb8FMwHMmVY5--nZbLZU4lIDFH4QHE2e791yQiQ';
+
 		it('Se puede hacer un GET /user con chai-http seteando un header "autorization: bearer ´token´', function (done){
 			chai.request('http://localhost:3000')
 				.get('/user')
-				.set('Authorization', `Bearer ${token}`)
+				.set('Authorization', `Bearer ${tokenBaseUser}`)
 				.end(function (err, res){
 					expect(err).to.not.exist;
 					expect(res).to.have.status(200);
@@ -89,8 +89,8 @@ describe('[X] Unit test for user model and authentication features', function ()
 
 					done();
 				});
-		}); 
-		it('No se puede acceder con GET /user y un token invalido'); //OJO: pq aqui a mi me chuta ?? //FIXME: si se elimina al user (o se cambia) el token seguiria siendo valido? OMG !! 
+		});
+		it('No se puede acceder con GET /user y un token invalido'); //OJO: pq aqui a mi me chuta ?? //FIXME: si se elimina al user (o se cambia) el token seguiria siendo valido? OMG !!
 		it('No se puede acceder con GET /user y un token mal formado');
 		it('No se puede acceder con GET /user y un token caducado');
 	});
