@@ -28,7 +28,7 @@ if (!config.production){
   // app.use(log4js.connectLogger( logger, { level: 'auto' }) ); // Alternativa a Morgan (casi lo mismo) usando log4js
   app.use(morgan('dev'));
 
-  mongoose.set('debug', true);
+      // -> mongoose.set('debug', true);
   /* mongoose.set('debug', (collectionName, method, query, doc) => {
     logger.trace('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);
     // debugMongoose('%s.%s(%s, %O)', collectionName, method, util.inspect(query, false, 20, true), doc);

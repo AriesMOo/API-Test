@@ -5,10 +5,12 @@ const chai       = require('chai');
 const chaiHttp   = require('chai-http');
 const logger     = require('../config/log4js.config').getLogger('lugarSpec');
 const lugarModel = require('../models/lugar.model');
+const fixtures = require('./fixtures');
 const should     = chai.should();
 const expect     = chai.expect;
-chai.use(chaiHttp);
 
+const server = 'http://localhost:3000/api';
+chai.use(chaiHttp);
 
 describe('[X] Unit tests for the API model: LUGAR', function () {
 	before('Remove all data from EAPs collection', function (done){
@@ -114,7 +116,6 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 	});
 
 	describe('2) Tests basados en cliente HTTP', function (){
-		const server = 'http://localhost:3000/api';
 
 		describe('> Prueba de rutas basicas', function (){
 			it('Puede hacer un GET /api/eaps', function (done){
@@ -133,43 +134,21 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		describe('> CRUD basico /api/eaps', function (){
-			let armunia = {
-				esCentroSalud: true,
-				codigo: '170301',
-				nombre: 'Armunia',
-				direccion: {
-					via: 'C/Algo',
-					numero: 34,
-					cp: 24640,
-					localidad: 'León',
-					notas: 'Pues unas noticas'
-				},
-				telefonos: [{
-					nombre: 'Teléfono principal',
-					numero: '987 00 00 00',
-					notas: 'Una nota del teléfono to`guapa'
-				},{
-					nombre: 'Teléfono secundario',
-					numero: '987 11 11 11',
-					notas: 'Es otra nota tetah !'
-				}],
-				aytoAsociado: 'Ninguno'
-			};
-
       let armuniaID;
+      let cembranosID;
 
 			it('Crea un centro completo (sin referencias a consultorios o redes) basado en Armunia', function (done){
 				chai.request(server)
 					.post('/eaps')
-					.send(armunia)
+					.send(fixtures.armunia)
           .then(res => {
 						expect(res).have.status(200);
 						expect(res.body).to.be.a('object');
 						expect(res.body).have.property('lugarGuardado');
-						expect(res.body.lugarGuardado).have.property('codigo').equal(armunia.codigo);
+						expect(res.body.lugarGuardado).have.property('codigo').equal(fixtures.armunia.codigo);
             expect(res.body.lugarGuardado.telefonos.length).equal(2);
 
-						let keysPasadas = Object.keys(armunia);
+						let keysPasadas = Object.keys(fixtures.armunia);
 						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_consultorios', '_redes'];
 						let keys = keysPasadas.concat(keysAdicionales);
 						expect(res.body.lugarGuardado).to.have.all.keys(keys);
@@ -190,7 +169,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           .then(res => {
             expect(res).have.status(200);
             const tamanoRespuesta = Object.keys(res.body.lugarGuardado).length;
-            const tamanoArmunia = Object.keys(armunia).length;
+            const tamanoArmunia = Object.keys(fixtures.armunia).length;
             expect(tamanoRespuesta).to.be.at.least(tamanoArmunia);
 
             done();
@@ -202,7 +181,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
       it('Se puede actualizar el centro anterior', function (done){
         let armuniaModificado = {};
-        Object.assign(armuniaModificado, armunia);
+        Object.assign(armuniaModificado, fixtures.armunia);
         armuniaModificado.nombre = 'Armunia updateado';
 
         chai.request(server)
@@ -233,7 +212,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
               .then(res => {
                 expect(res).have.status(200);
                 expect(res.body.lugarGuardado.pito).not.exist;
-                expect(res.body.lugarGuardado.length).equal(armunia.length);
+                expect(res.body.lugarGuardado.length).equal(fixtures.armunia.length);
 
                 done();
               })
@@ -261,54 +240,49 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 			it('No deberia poderse crear una red que solape el rango de otra');
 			it('Los campos audit de una red CREADA son correctos');
 			it('Los campos audit de una red MODIFICADA son correctos');
-      it('Se pude anadir un consultorio simple (CEMBRANOS) al centro ya creado antes (ARMUNIA)', function (done){
-        // Modelo base para Cembranos
-        const cembranos = {
-          esCentroSalud: false,
-          codigo: '17030136',
-          nombre: 'Cembranos'
-        };
-        let cembranosID;
+      it('Se pude anadir un consultorio simple (CEMBRANOS)', function (done){
+        chai.request(server)
+					.post('/eaps')
+					.send(fixtures.cembranos)
+          .then(res => {
+						expect(res).have.status(200);
+						expect(res.body).to.be.a('object');
+						expect(res.body).have.property('lugarGuardado');
+						expect(res.body.lugarGuardado).have.property('codigo').equal(fixtures.cembranos.codigo);
+            // expect(res.body.lugarGuardado.telefonos.length).equal(2);
 
-        // Se mete cembranos a la BBDD
-        let cproms = new lugarModel(cembranos);
-        cproms.save()
-          .then(cembranosSalvado => {
-            expect(cembranosSalvado.codigo).to.be.equal(cembranos.codigo);
-            expect(cembranosSalvado.nombre).to.be.equal(cembranos.nombre.toLowerCase());
+						let keysPasadas = Object.keys(fixtures.cembranos);
+						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_consultorios', '_redes'];
+						let keys = keysPasadas.concat(keysAdicionales);
+						expect(res.body.lugarGuardado).to.have.all.keys(keys);
 
-            cembranosID = cembranosSalvado._id;
-            logger.debug(`El ID de cembranos es >> ${cembranosID}`);
-          })
-          .catch(err => done(new Error(`Problemas para guardar Cembranos en la BBDD -> ${err}`)));
+						cembranosID = res.body.lugarGuardado._id;
 
-        // Se incluye cembranos en el array de consultorios de armunia
-        lugarModel.findById(armuniaID)
-          .then(armunia => {
-            armunia._consultorios.push(cembranosID);
-
-            // Peticion HTTP
-            chai.request(server)
-              .put(`/eaps/${armuniaID}`)
-              .send(armunia)
-              .then(res => {
-                expect(res).have.status(200);
-                expect(res.body.lugarGuardado.length).equal(armunia.length);
-
-                done();
-              })
-              .catch(err => done(new Error(err.response.text)) );
-
-            /* armunia.save()
-              .then(armuniaSalvado => {
-                expect(armuniaSalvado._consultorios.length).to.be.equal(1);
-
-                // done();
-              })
-              .cath(err => done(new Error(`Problemas persistiendo la modificacion en Armunia -> ${err}`)));*/
-          })
-          .catch(err => done(new Error(`ArmuniaID no parece existir -> ${err}`)));
+						done();
+					})
+          .catch(err => {
+            return done(new Error(err.response.text));
+          });
       });
+
+      /* it('Se puede anadir el consultorio(Cembranos) al centro creado anteriormente (ARMUNIA)', function (done){
+        logger.info(cembranosID);
+        fixtures.armunia._consultorios.push(cembranosID);
+        logger.info(fixtures.armunia);
+
+        // Peticion HTTP
+        chai.request(server)
+          .put(`/eaps/${armuniaID}`)
+          .send(fixtures.armunia)
+          .then(res => {
+            expect(res).have.status(200);
+            expect(res.body.lugarGuardado.length).equal(fixtures.armunia.length);
+            // expect(res.body.lugarGuardado._consultorios[0]).equal(cembranosID);
+
+            done();
+          })
+          .catch(err => done(new Error(err.response.text)) );
+      });*/
 		});
 	});
 });
