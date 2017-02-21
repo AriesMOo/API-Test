@@ -36,9 +36,30 @@ const lugarSchema = mongoose.Schema({
 lugarSchema.pre('validate', function (next){
   // Codigo centros(2) y consultorios(4)
   if (!/^(1703)\d{2}$/.test(this.codigo) && !/^(1703)\d{4}$/.test(this.codigo))
-    return next(Error('El codigo debe ser en forma 1703xx (donde las "x" son otros numeros")'));
+    return next(Error('El codigo debe ser en forma 1703xxxx (donde las "x" son otros numeros")'));
 
   // Consultorios (con lugarModel.findById)
+  if (this.isModified){
+    let consultorios = this._consultorios;
+    let i = 0;
+    for (i; i < consultorios.length; i++) {
+      let j = 0;
+      let contadorApariciones = 0;
+
+      // TODO: aqui irán las validaciones sobre si existen los IDs suministrados, y si eademas estos IDs son consultorios (y no centros)
+      // TODO: recordar tb que un consultorio no puede contener otros consultorios
+
+      for (j; j < consultorios.length; j++) {
+        if (consultorios[i] === consultorios[j])
+          contadorApariciones++;
+      }
+
+      console.log('Hasta aqui llego...' + this);
+
+      if (contadorApariciones > 1)
+        return next(Error('ERROR: El codigo del consultorio esta duplicado'));
+    }
+  }
 
   // Users de audit (con UserModel.findById)
 

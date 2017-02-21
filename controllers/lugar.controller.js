@@ -18,8 +18,15 @@ function getLugares (req, res) {
     .catch(err => res.status(500).send({ err }));
 }
 
+/**
+ * OJO! Devuelve el lugar sin jsonificar !! no tendra esta forma { lugar: {..} }
+ */
 function getLugarConcreto (req, res) {
-    res.status(200).send({ message: `stub message para ${req.params.lugarID}` });
+  const lugarID = req.params.lugarID;
+
+  lugarModel.findById(lugarID)
+    .then(lugar => res.status(200).send(lugar))
+    .catch(err => res.status(500).send(err));
 }
 
 function save (req, res) {
@@ -45,8 +52,6 @@ function update (req, res){
       }
       lugar.audit._actualizdoPorID = req.userID; // Si no viene no pasa nada
 
-      logger.debug(`Lugar actualizado (antes de persistir) >> ${lugar}`);
-
       lugar.save()
         .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
         .catch(err => res.status(500).send(err));
@@ -64,49 +69,10 @@ function deleteLugar (req, res) {
   res.status(200).send({ message: '#STUB method -> es un delete' });
 }
 
-// CONSULTORIOS
-let consultoriosHandler = {
-    anadeConsultorio: function (req, res){
-        const consultorioID = req.body.consultorioID;
-        const centroID = req.params.lugarID;
+// REVISAR: hacer un json update para los arrays (telefonos, redes y consultorios¿?)
 
-        if (!consultorioID)
-            return res.status(400).send({ message: 'No se ha suministrado ID de consultorio' });
-
-        lugarModel.findById(consultorioID, function (err, consultorio){
-            if (!consultorio)
-                return res.status(400).send({ message: 'ID no corresponde con ningun consultorio' });
-
-            if (consultorio.esCentroSalud)
-                return res.status(400).send({ message: 'El ID del consultorio es un centro de salud (no se pueden anidar centros de salud)' });
-        });
-
-        lugarModel.findById(centroID, function (err, centroSalud){
-            if (!centroSalud)
-                return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
-
-            if (!centroSalud.esCentroSalud)
-                return res.status(400).send({ message: 'El ID del EAP es un consultorio y no puede tener asociados otros consultorios' });
-                // TODO: pasar este metodo a validators del model con isNew (recorrer todos los consultoriosID y si algunos es isNew revisar que )
-                // NO NO, mejor comprobar que si hay consultorios, sea pq el flag esCentroSalud es igual a true
-
-            console.log(centroSalud);
-            centroSalud._consultorios.push(consultorioID);
-            console.log('==================');
-            console.log(centroSalud);
-            centroSalud.save(function (err,centroGuardado){
-                if (err)
-                    return res.status(500).send({ Error: `Problema al guardar el documento en la BBDD --> ${err}` });
-
-                res.status(200).send({ centroGuardado });
-            });
-
-        });
-    }
-};
-
-// TELEFONOS
-
+// TODO: incluir un handleError para manejar los errores de forma universal
+// y ademas poder tener en cuenta si estamos en produccion o no
 module.exports = {
     getLugares,
     getLugarConcreto,
@@ -114,5 +80,4 @@ module.exports = {
     update,
     patch,
     deleteLugar,
-    consultoriosHandler
 };
