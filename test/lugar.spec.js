@@ -272,12 +272,13 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
               .send(armuniaNuevo)
-              .then(res => {
-                // expect(res).to.have.status(500);
-
+              .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
+              .catch(err => {
+                // console.log(res);
+                console.log(err);
+                expect(err).to.have.status(500);
                 done();
-              })
-              .catch(err => done(new Error(err.response.text)) );
+              });
           });
       });
       it('Si se manda algo que no es un array al campo _consultorios: no se rompe nada');
