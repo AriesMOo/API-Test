@@ -210,6 +210,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           })
           .catch(err => done(new Error(`ArmuniaID no parece existir -> ${err}`)));
         });
+
       it('No se puede duplicar el codigo de un centro al salvarlo');
       it('No se puede duplicar el nombre de un centro al salvarlo');
       it('Se pueden actualizar los telefonos');
@@ -267,22 +268,29 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           });
       });
 
-      /* it('No se pueden agregar IDs duplicados al campo _consultorios:', function (done){
-        armuniaConConsultorios._consultorios.push(cembranosID); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir
-
+      it('No se pueden agregar IDs duplicados al campo _consultorios:', function (done){
         chai.request(server)
-          .put(`/eaps/${armuniaID}`)
-          .send(armuniaConConsultorios)
-          .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
-          .catch(err => {
-            // console.log(res);
-            // console.log(err);
-            expect(err).to.have.status(500);
+          .get(`/eaps/${armuniaID}`)
+          .end((err, res) => {
+            expect(err).to.not.exist;
+            expect(res).to.have.status(200);
 
-            armuniaConConsultorios._consultorios.pop(); // Se borra el valor insertado antes (sera el ultimo) para no estropear tests posteriores
-            done();
+            let nuevoArmunia = res.body;
+            nuevoArmunia._consultorios.push(cembranosID);
+
+            chai.request(server)
+              .put(`/eaps/${armuniaID}`)
+              .send(nuevoArmunia)
+              .then(res => expect(res).to.have.status(500) ) // aqui no debería llegar, pero por si acaso no lo hace bien (y devuelve un 200)
+              .catch(err => {
+                // console.log(res);
+                console.log(err);
+                expect(err).to.have.status(500);
+
+                done();
+              });
           });
-      });*/
+      });
 
       /* it('No se pueden agregar ids que no existen a _consultorios', function (done){
         armuniaConConsultorios._consultorios.push('58ac44cinventado44297bbe'); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir

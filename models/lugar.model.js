@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const _ = require('lodash');
 
 const lugarSchema = mongoose.Schema({
     esCentroSalud: { type: Boolean, required: true },
@@ -41,24 +42,31 @@ lugarSchema.pre('validate', function (next){
   // Consultorios (con lugarModel.findById)
   if (this.isModified && this.esCentroSalud){
     let consultorios = this._consultorios;
-    let contadorApariciones = 0;
     let i = 0;
     for (i; i < consultorios.length; i++) {
+      let contadorApariciones = 0;
       let j = 0;
 
-      /* lugarModel.findById(consultorios[i])
-         .then(cons => {
+      lugarModel.findById(consultorios[i])
+        .then(cons => {
            if (!cons)
-            return next(Error('No existe el Id del consultorio en la BBDD'));
+            return next(new Error('No existe el Id del consultorio en la BBDD'));
            if (!cons.esCentroSalud)
-            return next(Error('El EAP que se trata de introducir no es un consultorio'));
+            return next(new Error('El EAP que se trata de introducir no es un consultorio'));
         })
-        .catch(err => next(Error(`No existe el Id del consultorio en la BBDD (${err})`))); */
+        .catch(err => next(new Error(`No existe el Id del consultorio en la BBDD (${err})`)));
 
+      console.log(this.nombre);
       for (j; j < consultorios.length; j++) {
-        if (consultorios[i] === consultorios[j])
+        console.log(`-consultorios[${i}]>${consultorios[i]}`);
+        console.log(`    --consultorios[${j}]>${consultorios[j]}`);
+        if (consultorios[i] == consultorios[j]){
           contadorApariciones++;
+          console.log('    ##contador aumentaodo');
+        }
       }
+
+      console.log(`i->${i} j->${j} contador->${contadorApariciones}`);
 
       if (contadorApariciones > 1)
         return next(Error('El codigo del consultorio esta duplicado'));
@@ -83,6 +91,11 @@ lugarSchema.pre('validate', function (next){
 lugarSchema.pre('save', function (next) {
   if (this.isDirectModified('nombre' || this.nombre.isNew ))
     this.nombre = this.nombre.toLowerCase();
+
+  if (this.isModified && this.esCentroSalud){
+    this._consultorios = _.uniq(this._consultorios); // no sera un array ?? o que??
+    console.log(`aqui ha entrado y ha dejado los consultorios asi: ${this._consultorios}`);
+  }
 
   next();
 });
