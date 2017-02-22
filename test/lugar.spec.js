@@ -3,7 +3,6 @@
 // Resto de utilidades
 const chai       = require('chai');
 const chaiHttp   = require('chai-http');
-const logger     = require('../config/log4js.config').getLogger('lugarSpec');
 const lugarModel = require('../models/lugar.model');
 const fixtures   = require('./fixtures');
 const should     = chai.should;
@@ -13,10 +12,13 @@ const server = 'http://localhost:3000/api';
 chai.use(chaiHttp);
 
 describe('[X] Unit tests for the API model: LUGAR', function () {
-	before('Remove all data from EAPs collection', function (done){
+	let IDarmuniaMetidoDesdeBBDD;
+
+  before('Remove all data from EAPs collection', function (done){
 		lugarModel.remove({}, done);
 	});
 
+  /** ********************************************************************* **/
 	describe('1) Tests basicos contra la BBDD', function (){
 		let armunia = {
 			esCentroSalud: true,
@@ -33,6 +35,8 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 				expect(lugarGuardado.nombre).to.be.equal(armunia.nombre.toLowerCase());
 				expect(lugarGuardado.codigo).to.be.equal(armunia.codigo);
 				expect(lugarGuardado.esCentroSalud).to.be.equal(armunia.esCentroSalud);
+
+        IDarmuniaMetidoDesdeBBDD = lugarGuardado._id;
 
 				done();
 			});
@@ -115,11 +119,14 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
 	});
 
+  /** ********************************************************************* **/
 	describe('2) Tests basados en cliente HTTP', function (){
     let armuniaID;
     let cembranosID;
+    let grullerosID;
 
-    describe('> CRUD basico /api/eaps', function (){
+    // PRUEBAS BASE------------------------------------------------------------
+    describe('> Pruebas base con centros en /api/eaps', function (){
 			it('Crea un centro completo (sin referencias a consultorios o redes) basado en Armunia', function (done){
 				chai.request(server)
 					.post('/eaps')
@@ -208,7 +215,10 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
       it('Se pueden actualizar los telefonos');
       it('Se pueden borrar los telefonos');
 			it('Los datos de audit (fecha y users) son correctos');
+    });
 
+    // CONSULTORIOS------------------------------------------------------------
+    describe('> Pruebas con CONSULTORIOS /api/eaps', function (){
       it('Se pude anadir un consultorio simple (CEMBRANOS)', function (done){
         chai.request(server)
 					.post('/eaps')
@@ -242,7 +252,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
             let armuniaNuevo = res.body;
             armuniaNuevo._consultorios.push(cembranosID);
 
-            // Se sube al server
+            // Se sube al server y se guarda el resultado para posteriores pruebas (negativas)
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
               .send(armuniaNuevo)
@@ -257,43 +267,124 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           });
       });
 
-      it('No se pueden agregar IDs duplicados al campo _consultorios:', function (done){
-         // Se solicita al server el objeto actual (armnia)
+      /* it('No se pueden agregar IDs duplicados al campo _consultorios:', function (done){
+        armuniaConConsultorios._consultorios.push(cembranosID); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir
+
+        chai.request(server)
+          .put(`/eaps/${armuniaID}`)
+          .send(armuniaConConsultorios)
+          .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
+          .catch(err => {
+            // console.log(res);
+            // console.log(err);
+            expect(err).to.have.status(500);
+
+            armuniaConConsultorios._consultorios.pop(); // Se borra el valor insertado antes (sera el ultimo) para no estropear tests posteriores
+            done();
+          });
+      });*/
+
+      /* it('No se pueden agregar ids que no existen a _consultorios', function (done){
+        armuniaConConsultorios._consultorios.push('58ac44cinventado44297bbe'); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir
+
+        chai.request(server)
+          .put(`/eaps/${armuniaID}`)
+          .send(armuniaConConsultorios)
+          .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
+          .catch(err => {
+            expect(err).to.have.status(500);
+
+            // console.log(armuniaConConsultorios);
+            armuniaConConsultorios._consultorios.pop();
+
+            done();
+          });
+      });*/
+
+      /* it('No se pueden agregar consultorios cuyo id es un centro a _consultorios', function (done){
+        armuniaConConsultorios._consultorios.push(IDarmuniaMetidoDesdeBBDD); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir
+
+        chai.request(server)
+          .put(`/eaps/${armuniaID}`)
+          .send(armuniaConConsultorios)
+          .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
+          .catch(err => {
+            expect(err).to.have.status(500);
+
+            // console.log(armuniaConConsultorios);
+            armuniaConConsultorios._consultorios.pop();
+
+            done();
+          });
+      });*/
+
+      it('Se puede anadir un segundo consultorio (GRULLEROS)', function (done) {
+        chai.request(server)
+					.post('/eaps')
+					.send(fixtures.grulleros)
+          .then(res => {
+						expect(res).have.status(200);
+						expect(res.body).to.be.a('object');
+						expect(res.body).have.property('lugarGuardado');
+						expect(res.body.lugarGuardado).have.property('codigo').equal(fixtures.grulleros.codigo);
+
+            let keysPasadas = Object.keys(fixtures.grulleros);
+						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_consultorios', '_redes', 'telefonos'];
+						let keys = keysPasadas.concat(keysAdicionales);
+            expect(res.body.lugarGuardado).to.have.all.keys(keys);
+
+            grullerosID = res.body.lugarGuardado._id;
+            done();
+          })
+          .catch(err => done(new Error(err.response.text)) );
+      });
+
+      it('Se puede anadir GRULLEROS a ARMUNIA', function (done){
+        // Ahora tratamos de incluir el consultorio en Armunia
         chai.request(server)
           .get(`/eaps/${armuniaID}`)
           .end((err, res) => {
             expect(err).to.not.exist;
             expect(res).to.have.status(200);
 
-            let armuniaNuevo = res.body;
-            armuniaNuevo._consultorios.push(cembranosID);
-
-            // Se sube al server
+            let nuevoArmunia = res.body;
+            nuevoArmunia._consultorios.push(grullerosID);
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
-              .send(armuniaNuevo)
-              .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
-              .catch(err => {
-                // console.log(res);
-                console.log(err);
-                expect(err).to.have.status(500);
+              .send(nuevoArmunia)
+              .then(res => {
+                expect(res).have.status(200);
+                expect(res.body.lugarGuardado).to.have.property('codigo').equal(fixtures.armunia.codigo);
+                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(2);
+                expect(res.body.lugarGuardado._consultorios[0]).equal(cembranosID);
+                expect(res.body.lugarGuardado._consultorios[1]).equal(grullerosID);
+
                 done();
+              })
+              .catch(err => {
+                console.log(err);
+                done(new Error(err.response.text));
               });
           });
       });
+
+      it('No se pueden agregar consultorios a un consultorio');
       it('Si se manda algo que no es un array al campo _consultorios: no se rompe nada');
       it('Se puede eliminar un consultorio de un centro de salud');
+    });
 
+    // REDES-------------------------------------------------------------------
+    describe('> Pruebas con REDES en /api/eaps', function (){
       it('Se puede insertar un centro con redes ya predefinidas');
       it('Se puede crear un centro con redes y consultorios (COMPLETO) basado en Eras');
       it('Se puede anadir una red a un centro de salud');
       it('Se puede eliminar la red del centro de salud');
       it('No se puede eliminar un centro de salud con redes y/o consultorios asociados');
       it('No se puede eliminar un consultorio con redes asociados');
-
 		});
 
-    describe('> Prueba de rutas basicas', function (){
+    // RUTAS GENERICAS---------------------------------------------------------
+    describe('> Prueba de rutas genericas', function (){
 			it('Puede hacer un GET /api/eaps', function (done){
 				chai.request(server)
 					.get('/eaps')
@@ -316,6 +407,16 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
             expect(res).to.have.status(200);
             expect(res.body).to.be.an('object');
             expect(res.body).to.have.property('codigo').equal(fixtures.armunia.codigo);
+
+            done();
+          });
+      });
+
+      it('Un GET a /api/eaps/ideap con una id que no existe devuelve un stus 404', function (done){
+        chai.request(server)
+          .get('/eaps/58ac1ba4ed9a564598399bed')
+          .end((err) => {
+            expect(err).to.have.status(404);
 
             done();
           });

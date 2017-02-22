@@ -46,14 +46,14 @@ lugarSchema.pre('validate', function (next){
     for (i; i < consultorios.length; i++) {
       let j = 0;
 
-      lugarModel.findById(consultorios[i])
-        .then(cons => {
-          if (!cons)
+      /* lugarModel.findById(consultorios[i])
+         .then(cons => {
+           if (!cons)
             return next(Error('No existe el Id del consultorio en la BBDD'));
-          if (!cons.esCentroSalud)
+           if (!cons.esCentroSalud)
             return next(Error('El EAP que se trata de introducir no es un consultorio'));
         })
-        .catch(err => next(Error(`No existe el Id del consultorio en la BBDD (${err})`)));
+        .catch(err => next(Error(`No existe el Id del consultorio en la BBDD (${err})`))); */
 
       for (j; j < consultorios.length; j++) {
         if (consultorios[i] === consultorios[j])
@@ -69,7 +69,7 @@ lugarSchema.pre('validate', function (next){
   if (this.isModified && !this.esCentroSalud) {
     let consultorios = this._consultorios;
     if (consultorios.length > 0)
-      return next(Error('Un consultorio no puede tener asociados otros EAPs'));
+      return next(new Error('Un consultorio no puede tener asociados otros EAPs'));
   }
 
   // Users de audit (con UserModel.findById)

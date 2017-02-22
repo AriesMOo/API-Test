@@ -27,7 +27,14 @@ let cembranos = {
   nombre: 'Cembranos'
 };
 
+let grulleros = {
+  esCentroSalud: false,
+  codigo: '17030140',
+  nombre: 'Grulleros'
+};
+
 module.exports = {
   armunia,
-  cembranos
+  cembranos,
+  grulleros
 };

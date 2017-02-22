@@ -25,7 +25,7 @@ function getLugarConcreto (req, res) {
   const lugarID = req.params.lugarID;
 
   lugarModel.findById(lugarID)
-    .then(lugar => res.status(200).send(lugar))
+    .then(lugar => (lugar ? res.status(200).send(lugar) : res.status(404).send({ message: 'El ID especificado no correspondea a ningun EAP' })))
     .catch(err => res.status(500).send(err));
 }
 
