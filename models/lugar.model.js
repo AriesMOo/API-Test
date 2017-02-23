@@ -37,43 +37,48 @@ const lugarSchema = mongoose.Schema({
 lugarSchema.pre('validate', function (next){
   // Codigo centros(2) y consultorios(4)
   if (!/^(1703)\d{2}$/.test(this.codigo) && !/^(1703)\d{4}$/.test(this.codigo))
-    return next(Error('El codigo debe ser en forma 1703xxxx (donde las "x" son otros numeros")'));
+    return next(Error('El codigo debe ser en forma 1703xxxx (donde las "x" son otros numeros)'));
 
-  // Consultorios (con lugarModel.findById)
+  // Consultorios (para centros de salud)
+  var consultoriosValidos = true;
   if (this.isModified && this.esCentroSalud){
+    var self = this;
     let consultorios = this._consultorios;
     let i = 0;
+    console.log(`-> ${this.nombre} -- consultorios: ${this._consultorios}`);
     for (i; i < consultorios.length; i++) {
-      let contadorApariciones = 0;
-      let j = 0;
-
-      lugarModel.findById(consultorios[i])
-        .then(cons => {
-           if (!cons)
-            return next(new Error('No existe el Id del consultorio en la BBDD'));
-           if (!cons.esCentroSalud)
-            return next(new Error('El EAP que se trata de introducir no es un consultorio'));
+      /* lugarModel.findById(consultorios[i])
+        .then(eap => {
+          if (!eap){
+            console.log('####### no existe !!');
+            return next(Error('No existe el Id del consultorio en la BBDD'));
+          }
+          if (eap.esCentroSalud)
+            return next(Error('El EAP que se trata de introducir no es un consultorio'));
         })
-        .catch(err => next(new Error(`No existe el Id del consultorio en la BBDD (${err})`)));
-
-      console.log(this.nombre);
-      for (j; j < consultorios.length; j++) {
-        console.log(`-consultorios[${i}]>${consultorios[i]}`);
-        console.log(`    --consultorios[${j}]>${consultorios[j]}`);
-        if (consultorios[i] == consultorios[j]){
-          contadorApariciones++;
-          console.log('    ##contador aumentaodo');
-        }
-      }
-
-      console.log(`i->${i} j->${j} contador->${contadorApariciones}`);
-
-      if (contadorApariciones > 1)
-        return next(Error('El codigo del consultorio esta duplicado'));
+        .catch(err => {
+          console.log('###### hay un error');
+          return next(Error(`Problemas en la consulta a la BBDD (${err})`))
+        });*/
+      let queEsEsto = lugarModel.findById(consultorios[i], function (err, eap) {
+        if (err) return next(Error(`Problemas en la consulta a la BBDD (${err})`));
+        if (!eap){
+            console.log(`####### no existe !! y self vale > ${self}`);
+            self.invalidate('_consultorios', 'No  hay ningun EAP con la Id pasada');
+            consultoriosValidos = false;
+            return next(Error('No existe el Id del consultorio en la BBDD'));
+          }
+      });
+      console.log(queEsEsto);
     }
   }
 
-  // Si es un consultorio el array ha de estar vacio
+  if (!consultoriosValidos){
+    console.log('#-#-#- INVALIDANDO QUE ES GERUNDIO');
+    this.invalidate('_consultorios', 'No  hay ningun EAP con la Id pasada');
+  }
+
+  // Consultorios (para otros consultorios) -> array _consultorios ha de estar vacio
   if (this.isModified && !this.esCentroSalud) {
     let consultorios = this._consultorios;
     if (consultorios.length > 0)
@@ -92,10 +97,9 @@ lugarSchema.pre('save', function (next) {
   if (this.isDirectModified('nombre' || this.nombre.isNew ))
     this.nombre = this.nombre.toLowerCase();
 
-  if (this.isModified && this.esCentroSalud){
-    this._consultorios = _.uniq(this._consultorios); // no sera un array ?? o que??
-    console.log(`aqui ha entrado y ha dejado los consultorios asi: ${this._consultorios}`);
-  }
+  // Garantiza que no haya duplicados en los ids de los consultorios porque el unique no va bien
+  if (this.isModified && this.esCentroSalud)
+    this._consultorios = _.uniqWith(this._consultorios, _.isEqual);
 
   next();
 });

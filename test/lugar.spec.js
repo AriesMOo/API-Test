@@ -1,6 +1,6 @@
 'use strcit';
 
-// Resto de utilidades
+const ObjectId   = require('mongoose').Types.ObjectId;
 const chai       = require('chai');
 const chaiHttp   = require('chai-http');
 const lugarModel = require('../models/lugar.model');
@@ -264,7 +264,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
                 done();
               })
-              .catch(err => done(new Error(err.response.text)) );
+              .catch(err => done(new Error(err.message)) );
           });
       });
 
@@ -281,48 +281,59 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
               .send(nuevoArmunia)
-              .then(res => expect(res).to.have.status(500) ) // aqui no debería llegar, pero por si acaso no lo hace bien (y devuelve un 200)
-              .catch(err => {
-                // console.log(res);
-                console.log(err);
-                expect(err).to.have.status(500);
+              .then(res => {
+                expect(res).to.have.status(200);
+                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(1);
 
                 done();
-              });
+              })
+              .catch(err => done(new Error(err.message)) );
           });
       });
 
-      /* it('No se pueden agregar ids que no existen a _consultorios', function (done){
-        armuniaConConsultorios._consultorios.push('58ac44cinventado44297bbe'); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir
-
+      it('No se pueden agregar ids que no existen a _consultorios', function (done){
         chai.request(server)
-          .put(`/eaps/${armuniaID}`)
-          .send(armuniaConConsultorios)
-          .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
-          .catch(err => {
-            expect(err).to.have.status(500);
+          .get(`/eaps/${armuniaID}`)
+          .end((err, res) => {
+            expect(err).to.not.exist;
+            expect(res).to.have.status(200);
 
-            // console.log(armuniaConConsultorios);
-            armuniaConConsultorios._consultorios.pop();
+            let nuevoArmunia = res.body;
+            nuevoArmunia._consultorios.push(ObjectId.createFromHexString('000000010000000000000000'));
 
-            done();
+            chai.request(server)
+              .put(`/eaps/${armuniaID}`)
+              .send(nuevoArmunia)
+              .then(res => {
+                expect(res).to.have.status(200);
+                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(1);
+
+                done();
+              })
+              .catch(err => done(Error(err.message)) );
           });
-      });*/
+      });
 
       /* it('No se pueden agregar consultorios cuyo id es un centro a _consultorios', function (done){
-        armuniaConConsultorios._consultorios.push(IDarmuniaMetidoDesdeBBDD); // Se usa el valor conseguido anteriormente del server, para no volverlo a pedir
-
         chai.request(server)
-          .put(`/eaps/${armuniaID}`)
-          .send(armuniaConConsultorios)
-          .then(res => { expect(res.status).to.have.status(500); }) // aqui no debería llegar..
-          .catch(err => {
-            expect(err).to.have.status(500);
+          .get(`/eaps/${armuniaID}`)
+          .end((err, res) => {
+            expect(err).to.not.exist;
+            expect(res).to.have.status(200);
 
-            // console.log(armuniaConConsultorios);
-            armuniaConConsultorios._consultorios.pop();
+            let nuevoArmunia = res.body;
+            nuevoArmunia._consultorios.push(IDarmuniaMetidoDesdeBBDD);
 
-            done();
+            chai.request(server)
+              .put(`/eaps/${armuniaID}`)
+              .send(nuevoArmunia)
+              .then(res => {
+                expect(res).to.have.status(200);
+                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(1);
+
+                done();
+              })
+              .catch(err => done(new Error(err.message)) );
           });
       });*/
 
@@ -344,7 +355,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
             grullerosID = res.body.lugarGuardado._id;
             done();
           })
-          .catch(err => done(new Error(err.response.text)) );
+          .catch(err => done(new Error(err.message)) );
       });
 
       it('Se puede anadir GRULLEROS a ARMUNIA', function (done){
@@ -369,10 +380,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
                 done();
               })
-              .catch(err => {
-                console.log(err);
-                done(new Error(err.response.text));
-              });
+              .catch(err => done(Error(err.message)) );
           });
       });
 

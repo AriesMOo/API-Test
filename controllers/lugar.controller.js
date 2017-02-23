@@ -35,7 +35,7 @@ function save (req, res) {
 
   nuevoLugar.save()
     .then(lugarGuardado => res.status(200).send({ lugarGuardado }) )
-    .catch(err => res.status(500).send({ message: `Error: No se ha podido guardar en la BBDD. ${err}` }) );
+    .catch(err => res.status(500).send({ message: `No se ha podido guardar en la BBDD. ${err}` }) );
 }
 
 function update (req, res){
@@ -54,9 +54,9 @@ function update (req, res){
 
       lugar.save()
         .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
-        .catch(err => res.status(500).send(err));
+        .catch(err => res.status(500).send({ message: `No se ha podido guardar el registro ya actualizado en la BBDD. ${err}` }));
     })
-    .catch(err => res.status(500).send(err));
+    .catch(err => res.status(500).send({ message: `No se ha podido actualizar en la BBDD. ${err}` }));
 }
 
 function patch (req, res) {
