@@ -4,13 +4,17 @@
   "description": "Es una pequeña prueba de concecpto para seguir el tutorial de API Rest con node.js de Carlos Azaustre",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon server.js --exec babel-node",
+    "build": "babel lib -d dist",
+    "serve": "node dist/server.js",
+    "test": "mocha --compilers js:babel-register"
   },
   "author": "Mik Pride (https://github.com/AriesMOo)",
   "repository": "https://github.com/AriesMOo/API-Test",
   "license": "ISC",
   "dependencies": {
+    "babel-polyfill": "^6.23.0",
+    "babel-runtime": "^6.23.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.16.0",
     "crypto": "0.0.3",
@@ -24,7 +28,15 @@
     "morgan": "^1.7.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.23.0",
+    "babel-core": "^6.23.1",
     "babel-eslint": "^7.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.1.8",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-latest": "^6.22.0",
+    "babel-preset-stage-0": "^6.22.0",
+    "babel-register": "^6.23.0",
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "eslint": "^3.13.1",

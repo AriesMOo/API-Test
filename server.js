@@ -1,5 +1,8 @@
 'use strict';
 
+require('babel-core/register');
+require('babel-polyfill'); // Para poder utilizar todos las cosas pepis de ES2015,2016 y 2017 via babel.js
+
 const express        = require('express');
 const mongoose       = require('mongoose');
 const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP

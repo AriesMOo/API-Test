@@ -34,6 +34,29 @@ const lugarSchema = mongoose.Schema({
 });
 
 // VALIDACIONES
+async function consultorioValidoParaMeter (consultorio, modelo){
+  try {
+    const q = await lugarModel.findById(consultorio, (err, eap) => {
+      if (err) return false;
+      if (!eap) console.log('####### no existe !!');
+    });
+
+    console.log(`aqui va una q: ${q}`);
+    if (!q) {
+      console.log('INVALIDADO');
+      modelo.invalidate('_consultorios', 'No  hay ningun EAP con la Id pasada');
+      return false;
+    } else {
+      console.log('existe consultorio');
+      return true;
+    }
+
+  } catch (err) {
+    console.error(`ha habido un ERROR !! ${err}`);
+    return false;
+  }
+}
+
 lugarSchema.pre('validate', function (next){
   // Codigo centros(2) y consultorios(4)
   if (!/^(1703)\d{2}$/.test(this.codigo) && !/^(1703)\d{4}$/.test(this.codigo))
@@ -60,16 +83,17 @@ lugarSchema.pre('validate', function (next){
           console.log('###### hay un error');
           return next(Error(`Problemas en la consulta a la BBDD (${err})`))
         });*/
-      let queEsEsto = lugarModel.findById(consultorios[i], function (err, eap) {
+      /* let queEsEsto = lugarModel.findById(consultorios[i], function (err, eap) {
         if (err) return next(Error(`Problemas en la consulta a la BBDD (${err})`));
         if (!eap){
             console.log(`####### no existe !! y self vale > ${self}`);
             self.invalidate('_consultorios', 'No  hay ningun EAP con la Id pasada');
             consultoriosValidos = false;
-            return next(Error('No existe el Id del consultorio en la BBDD'));
+            return next(new Error('No existe el Id del consultorio en la BBDD'));
           }
       });
-      console.log(queEsEsto);
+      console.log(queEsEsto);*/
+      consultorioValidoParaMeter(consultorios[i], this);
     }
   }
 
