@@ -264,7 +264,10 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
                 done();
               })
-              .catch(err => done(new Error(err.message)) );
+              .catch(err => {
+                console.log(err);
+                done(new Error(err.response.text));
+              });
           });
       });
 
