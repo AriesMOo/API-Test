@@ -1,12 +1,14 @@
 'use strict';
 
-const express               = require('express');
-const config                = require('../config/config');
-const productController     = require('../controllers/product');
-const authController        = require('../controllers/user');
-const dispositivoController = require('../controllers/dispositivo.controller');
-const lugaresController     = require('../controllers/lugar.controller.js');
-const apiRouter             = express.Router();
+const express                = require('express');
+const config                 = require('../config/config');
+const productController      = require('../controllers/product');
+const authController         = require('../controllers/user');
+const dispositivoController  = require('../controllers/dispositivo.controller');
+const centrosSaludController = require('../controllers/lugar.controller.js');
+const consultoriosController = require('../controllers/lugar.controller.js');
+const apiRouter              = express.Router();
+const consultorioModel = require('../models/consultorio.model');
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 apiRouter.get('/', (req, res) => {
@@ -25,16 +27,36 @@ apiRouter.get('/testAggregation', dispositivoController.testAggregation);
 apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
 apiRouter.post('/dispositivos', dispositivoController.saveDispositivo);
 
-apiRouter.route('/eaps')
-  .get(lugaresController.getLugares)
-  .post(lugaresController.save);
-apiRouter.route('/eaps/:lugarID')
-  .get(lugaresController.getLugarConcreto)
-  .put(lugaresController.update)
-  .patch(lugaresController.patch);
+apiRouter.route('/centros-salud')
+  .get(centrosSaludController.getLugares)
+  .post(centrosSaludController.save);
+apiRouter.route('/centros-salud/:lugarID')
+  .get(centrosSaludController.getLugarConcreto)
+  .put(centrosSaludController.update)
+  .patch(centrosSaludController.patch);
   // .delete(lugaresController.deleteProduct);
 
-// apiRouter.post('/eaps/:lugarID/consultorios', lugaresController.consultoriosHandler.anadeConsultorio);
+apiRouter.route('/consultorios')
+  .get(function (req, res) {
+    consultorioModel.find({ '__t': { '$exists': false } })
+      .then(lugares => {
+        if (lugares.length == 0)
+          res.status(404).send({ message: 'No hay centros/consultorios' });
+
+        res.status(200).send(lugares);
+      })
+      .catch(err => res.status(500).send({ err }) );
+  })
+  .post(function (req, res) {
+      let nuevoLugar = new consultorioModel(req.body);
+      nuevoLugar.audit._actualizdoPorID = req.userID; // Si no viene no hay problema
+
+      nuevoLugar.save()
+        .then(lugarGuardado => res.status(200).send({ lugarGuardado }) )
+        .catch(err => res.status(500).send({ message: `No se ha podido guardar en la BBDD. ${err}` }) );
+    }
+  );
+
 /** test */
 
 // Rutas de API

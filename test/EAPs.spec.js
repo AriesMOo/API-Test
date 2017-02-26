@@ -1,12 +1,13 @@
 'use strcit';
 
-const ObjectId   = require('mongoose').Types.ObjectId;
-const chai       = require('chai');
-const chaiHttp   = require('chai-http');
-const lugarModel = require('../models/lugar.model');
-const fixtures   = require('./fixtures');
-const should     = chai.should;
-const expect     = chai.expect;
+const ObjectId         = require('mongoose').Types.ObjectId;
+const chai             = require('chai');
+const chaiHttp         = require('chai-http');
+const centroSaludModel = require('../models/centro-salud.discriminator');
+const consultorioModel = require('../models/consultorio.model');
+const fixtures         = require('./fixtures');
+const should           = chai.should;
+const expect           = chai.expect;
 
 const server = 'http://localhost:3000/api';
 chai.use(chaiHttp);
@@ -15,26 +16,25 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 	let IDarmuniaMetidoDesdeBBDD;
 
   before('Remove all data from EAPs collection', function (done){
-		lugarModel.remove({}, done);
+		// centroSalud.remove({}, done); este no parece funcionar.. tiene sentido pq ahora hereda de consultorio qu es el que establece el modelo
+    consultorioModel.remove({}, done);
 	});
 
   /** ********************************************************************* **/
 	describe('1) Tests basicos contra la BBDD', function (){
 		let armunia = {
-			esCentroSalud: true,
 			codigo: '170398',
 			nombre: 'Armunia - directo a BBDD',
 		};
 
 		it('Se puede salvar un centro con datos basicos (Armunia - 170301 - esCentroSalud)', function (done) {
-			new lugarModel(armunia).save(function (err, lugarGuardado) {
+			new centroSaludModel(armunia).save(function (err, lugarGuardado) {
 				if (err) return done(err);
 
 				lugarGuardado.should.be.a('object');
 				lugarGuardado.should.have.property('_id');
 				expect(lugarGuardado.nombre).to.be.equal(armunia.nombre.toLowerCase());
 				expect(lugarGuardado.codigo).to.be.equal(armunia.codigo);
-				expect(lugarGuardado.esCentroSalud).to.be.equal(armunia.esCentroSalud);
 
         IDarmuniaMetidoDesdeBBDD = lugarGuardado._id;
 
@@ -43,8 +43,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		it('Se puede salvar otro centro (aleatorio)', function (done) {
-			new lugarModel({
-				esCentroSalud: false,
+			new centroSaludModel({
 				codigo: '170399',
 				nombre: 'Otra movida',
 			}).save(function (err, lugarGuardado){
@@ -56,10 +55,8 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 			});
 		});
 
-
 		it('No se pueden salvar centros con condigo identico (aleatorio)', function (done) {
-			new lugarModel({
-				esCentroSalud: false,
+			new centroSaludModel({
 				codigo: '170398',
 				nombre: 'Otra movida',
 			}).save(function (err, lugarGuardado){
@@ -70,8 +67,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		it('No se puede guardar un centro con codigo erroneo (solo numeros)', function (done) {
-			new lugarModel({
-				esCentroSalud: true,
+			new centroSaludModel({
 				codigo: '170300000',
 				nombre: 'Armunia',
 			}).save(function (err, lugarGuardado){
@@ -82,8 +78,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		it('No se puede guardar un centro con codigo erroneo (ascii)', function (done) {
-			new lugarModel({
-				esCentroSalud: true,
+			new centroSaludModel({
 				codigo: 'memola el jamon',
 				nombre: 'Armunia',
 			}).save(function (err, lugarGuardado){
@@ -94,7 +89,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		it('No se puede guardar un centro sin datos basicos (requeridos)', function (done) {
-			new lugarModel({ codigo: '170305' }).save(function (err, lugarGuardado){
+			new centroSaludModel({ codigo: '170305' }).save(function (err, lugarGuardado){
 				expect(err).to.exist;
 				expect(lugarGuardado).to.not.exist;
 				done();
@@ -102,7 +97,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		it('No se puede guardar un centro con datos que no aparecen en el schema', function (done) {
-			new lugarModel({ poyas: 'muchas' }).save(function (err, lugarGuardado){
+			new centroSaludModel({ poyas: 'muchas' }).save(function (err, lugarGuardado){
 				expect(err).to.exist;
 				expect(lugarGuardado).to.not.exist;
 				done();
@@ -110,7 +105,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 		});
 
 		it('No se puede guardar un centro sin algun datos obligatorio', function (done) {
-			new lugarModel({ codigo: '170399' }).save(function (err, lugarGuardado){
+			new centroSaludModel({ codigo: '170399' }).save(function (err, lugarGuardado){
 				expect(err).to.exist;
 				expect(lugarGuardado).to.not.exist;
 				done();
@@ -126,10 +121,10 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
     let grullerosID;
 
     // PRUEBAS BASE------------------------------------------------------------
-    describe('> Pruebas base con centros en /api/eaps', function (){
+    describe('> Pruebas base con centros en /api/centros-salud', function (){
 			it('Crea un centro completo (sin referencias a consultorios o redes) basado en Armunia', function (done){
 				chai.request(server)
-					.post('/eaps')
+					.post('/centros-salud')
 					.send(fixtures.armunia)
           .then(res => {
 						expect(res).have.status(200);
@@ -139,7 +134,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
             expect(res.body.lugarGuardado.telefonos.length).equal(2);
 
 						let keysPasadas = Object.keys(fixtures.armunia);
-						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_consultorios', '_redes'];
+						let keysAdicionales = ['_id', '__v', '__t', 'createdAt', 'updatedAt', '_consultorios', '_redes'];
 						let keys = keysPasadas.concat(keysAdicionales);
 						expect(res.body.lugarGuardado).to.have.all.keys(keys);
 
@@ -147,14 +142,12 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
 						done();
 					})
-          .catch(err => {
-            return done(new Error(err.response.text));
-          });
+          .catch(err => done(new Error(err.response.text)) );
 			});
 
       it('No se puede actualizar sin enviar datos (datos vacios)', function (done){
         chai.request(server)
-          .put(`/eaps/${armuniaID}`)
+          .put(`/centros-salud/${armuniaID}`)
           .send( {} )
           .then(res => {
             expect(res).have.status(200);
@@ -164,9 +157,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
             done();
           })
-          .catch(err => {
-            return done(err); // done(new Error(err.response.text));
-          });
+          .catch(err => done(Error(err.response.text)) );
       });
 
       it('Se puede actualizar el centro anterior', function (done){
@@ -175,7 +166,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
         armuniaModificado.nombre = 'Armunia updateado';
 
         chai.request(server)
-          .put(`/eaps/${armuniaID}`)
+          .put(`/centros-salud/${armuniaID}`)
           .send(armuniaModificado)
           .then(res => {
             expect(res).have.status(200);
@@ -184,20 +175,18 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
             done();
           })
-          .catch(err => {
-            return done(new Error(err.response.text));
-          });
+          .catch(err => done(Error(err.response.text)) );
       });
 
       it('Si se intentan actualizar campos que no existen, no se rompe nada', function (done){
-        lugarModel.findById(armuniaID)
+        centroSaludModel.findById(armuniaID)
           .then(lugar => {
             // Modifico el centro
             lugar.pito = 'Pozi poz no';
 
             // Pruebo la peticion HTTP
             chai.request(server)
-              .put(`/eaps/${armuniaID}`)
+              .put(`/centros-salud/${armuniaID}`)
               .send(lugar)
               .then(res => {
                 expect(res).have.status(200);
@@ -209,7 +198,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
               .catch(err => done(new Error(err.response.text)) );
           })
           .catch(err => done(new Error(`ArmuniaID no parece existir -> ${err}`)));
-        });
+      });
 
       it('No se puede duplicar el codigo de un centro al salvarlo');
       it('No se puede duplicar el nombre de un centro al salvarlo');
@@ -219,10 +208,33 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
     });
 
     // CONSULTORIOS------------------------------------------------------------
+    describe('> Pruebas directamente a BBDD', function (){
+      it('Se puede crear un consultorio sin mas', function (done) {
+        let test = {
+          codigo: '170340',
+          nombre: 'esto ye un test !',
+        };
+
+        let consTest = new consultorioModel(test);
+        consTest.save(function (err, lugarGuardado) {
+          if (err) done(err);
+
+          lugarGuardado.should.be.a('object');
+          lugarGuardado.should.have.property('_id');
+          expect(lugarGuardado.nombre).to.be.equal(test.nombre.toLowerCase());
+          expect(lugarGuardado.codigo).to.be.equal(test.codigo);
+
+          IDarmuniaMetidoDesdeBBDD = lugarGuardado._id;
+
+          done();
+        });
+      });
+    });
+
     describe('> Pruebas con CONSULTORIOS /api/eaps', function (){
       it('Se pude anadir un consultorio simple (CEMBRANOS)', function (done){
         chai.request(server)
-					.post('/eaps')
+					.post('/consultorios')
 					.send(fixtures.cembranos)
           .then(res => {
 						expect(res).have.status(200);
@@ -231,7 +243,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 						expect(res.body.lugarGuardado).have.property('codigo').equal(fixtures.cembranos.codigo);
 
             let keysPasadas = Object.keys(fixtures.cembranos);
-						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_consultorios', '_redes', 'telefonos'];
+						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_redes', 'telefonos'];
 						let keys = keysPasadas.concat(keysAdicionales);
             expect(res.body.lugarGuardado).to.have.all.keys(keys);
 
@@ -242,7 +254,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           .catch(err => done(new Error(err.response.text)));
       });
 
-      it('Se puede anadir el consultorio(Cembranos) al centro creado anteriormente (ARMUNIA)', function (done){
+      /* it('Se puede anadir el consultorio(Cembranos) al centro creado anteriormente (ARMUNIA)', function (done){
         // Se solicita al server el objeto actual (armnia)
         chai.request(server)
           .get(`/eaps/${armuniaID}`)
@@ -340,7 +352,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           });
       });*/
 
-      it('Se puede anadir un segundo consultorio (GRULLEROS)', function (done) {
+      /* it('Se puede anadir un segundo consultorio (GRULLEROS)', function (done) {
         chai.request(server)
 					.post('/eaps')
 					.send(fixtures.grulleros)
@@ -393,7 +405,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
     });
 
     // REDES-------------------------------------------------------------------
-    describe('> Pruebas con REDES en /api/eaps', function (){
+    describe('> Pruebas con REDES en /api/centros-salud', function (){
       it('Se puede insertar un centro con redes ya predefinidas');
       it('Se puede crear un centro con redes y consultorios (COMPLETO) basado en Eras');
       it('Se puede anadir una red a un centro de salud');
@@ -404,9 +416,9 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
     // RUTAS GENERICAS---------------------------------------------------------
     describe('> Prueba de rutas genericas', function (){
-			it('Puede hacer un GET /api/eaps', function (done){
+			it('Puede hacer un GET /api/centros-salud', function (done){
 				chai.request(server)
-					.get('/eaps')
+					.get('/centros-salud')
 					.end((err, res) => {
 						expect(err).not.exist;
 						res.should.have.status(200);
@@ -418,7 +430,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 					});
 			});
 
-      it('Puede hacer un GET en /api/eaps/ideap para conseguir info de un solo EAP', function (done){
+      it('Puede hacer un GET en /api/centros-salud:ideap para conseguir info de un solo EAP', function (done){
         chai.request(server)
           .get(`/eaps/${armuniaID}`)
           .end((err, res) => {
@@ -431,15 +443,15 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
           });
       });
 
-      it('Un GET a /api/eaps/ideap con una id que no existe devuelve un stus 404', function (done){
+      it('Un GET a /api/centros-salud:ideap con una id que no existe devuelve un stus 404', function (done){
         chai.request(server)
-          .get('/eaps/58ac1ba4ed9a564598399bed')
+          .get('/centros-salud/58ac1ba4ed9a564598399bed')
           .end((err) => {
             expect(err).to.have.status(404);
 
             done();
           });
-      });
+      });*/
 		});
 	});
 });

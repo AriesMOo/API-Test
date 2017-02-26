@@ -3,12 +3,19 @@
 // NOTA: el comportamiento por defecto cuando se pasan parametros que no forman
 // parte del schema (POST, PUT) es IGNORARLOS SIN AVISAR. La respuesta puede ser
 // 200 - ok y no haber actualizado nada.
-const util       = require('util');
-const lugarModel = require('../models/lugar.model');
-const logger     = require('../config/log4js.config').getLogger('lugarController');
+const util             = require('util');
+const centroSaludModel = require('../models/centro-salud.discriminator');
+const consultorioModel = require('../models/consultorio.model');
+const logger           = require('../config/log4js.config').getLogger('lugarController');
+
+let modelo = centroSaludModel;
+function setModeloCorrecto (req) {
+  if (req.path === '/consultorios') return centroSaludModel;
+  else return consultorioModel;
+}
 
 function getLugares (req, res) {
-  lugarModel.find({})
+  modelo.find({})
     .then(lugares => {
       if (lugares.length == 0)
         res.status(404).send({ message: 'No hay centros/consultorios' });
@@ -24,13 +31,13 @@ function getLugares (req, res) {
 function getLugarConcreto (req, res) {
   const lugarID = req.params.lugarID;
 
-  lugarModel.findById(lugarID)
+  modelo.findById(lugarID)
     .then(lugar => (lugar ? res.status(200).send(lugar) : res.status(404).send({ message: 'El ID especificado no correspondea a ningun EAP' })))
     .catch(err => res.status(500).send(err));
 }
 
 function save (req, res) {
-  let nuevoLugar = new lugarModel(req.body);
+  let nuevoLugar = new modelo(req.body);
   nuevoLugar.audit._actualizdoPorID = req.userID; // Si no viene no hay problema
 
   nuevoLugar.save()
@@ -41,7 +48,7 @@ function save (req, res) {
 function update (req, res){
   const lugarID = req.params.lugarID;
 
-  lugarModel.findById(lugarID)
+  modelo.findById(lugarID)
     .then(lugar => {
       if (!lugar)
         return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
@@ -79,5 +86,5 @@ module.exports = {
     save,
     update,
     patch,
-    deleteLugar,
+    deleteLugar
 };
