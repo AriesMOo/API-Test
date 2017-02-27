@@ -9,6 +9,7 @@
 'use strict';
 
 const mongoose         = require('mongoose');
+const extend           = require('mongoose-schema-extend');
 const _                = require('lodash');
 const consultorioModel = require('./consultorio.model');
 const dispositivoModel = require('./dispositivo.model');
@@ -96,4 +97,4 @@ centroSaludSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = consultorioModel.discriminator('centro-salud', centroSaludSchema);
+// module.exports = consultorioModel.discriminator('centro-salud', centroSaludSchema);

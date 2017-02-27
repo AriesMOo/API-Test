@@ -3,8 +3,8 @@
 const ObjectId         = require('mongoose').Types.ObjectId;
 const chai             = require('chai');
 const chaiHttp         = require('chai-http');
-const centroSaludModel = require('../models/centro-salud.discriminator');
-const consultorioModel = require('../models/consultorio.model');
+const centroSaludModel = require('../models/consultorio.model').centroSaludModel;
+const consultorioModel = require('../models/consultorio.model').consultorioModel;
 const fixtures         = require('./fixtures');
 const should           = chai.should;
 const expect           = chai.expect;
@@ -16,8 +16,10 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 	let IDarmuniaMetidoDesdeBBDD;
 
   before('Remove all data from EAPs collection', function (done){
-		// centroSalud.remove({}, done); este no parece funcionar.. tiene sentido pq ahora hereda de consultorio qu es el que establece el modelo
-    consultorioModel.remove({}, done);
+		centroSaludModel.remove({}).exec();
+    consultorioModel.remove().exec();
+
+    done();
 	});
 
   /** ********************************************************************* **/
@@ -299,7 +301,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
                 done();
               })
-              .catch(err => done(new Error(err.response.text)) );
+              .catch(err => done(new Error(err)) );
           });
       });
 
@@ -322,7 +324,7 @@ describe('[X] Unit tests for the API model: LUGAR', function () {
 
                 done();
               })
-              .catch(err => done(new Error(err.response.text)) );
+              .catch(err => done(new Error(err)) );
           });
       });
 

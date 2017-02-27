@@ -6,9 +6,8 @@ const productController      = require('../controllers/product');
 const authController         = require('../controllers/user');
 const dispositivoController  = require('../controllers/dispositivo.controller');
 const centrosSaludController = require('../controllers/lugar.controller.js');
-const consultoriosController = require('../controllers/lugar.controller.js');
 const apiRouter              = express.Router();
-const consultorioModel = require('../models/consultorio.model');
+const consultorioModel       = require('../models/consultorio.model').consultorioModel;
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 apiRouter.get('/', (req, res) => {

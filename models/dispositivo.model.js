@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose         = require('mongoose');
-const centroSaludModel = require('../models/centro-salud.discriminator');
+const centroSaludModel = require('../models/consultorio.model').centroSaludModel;
 const ipOps            = require('ip');
 const _                = require('lodash');
 

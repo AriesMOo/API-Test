@@ -4,8 +4,8 @@
 // parte del schema (POST, PUT) es IGNORARLOS SIN AVISAR. La respuesta puede ser
 // 200 - ok y no haber actualizado nada.
 const util             = require('util');
-const centroSaludModel = require('../models/centro-salud.discriminator');
-const consultorioModel = require('../models/consultorio.model');
+const centroSaludModel = require('../models/consultorio.model').centroSaludModel;
+const consultorioModel = require('../models/consultorio.model').consultorioModel;
 const logger           = require('../config/log4js.config').getLogger('lugarController');
 
 let modelo = centroSaludModel;
