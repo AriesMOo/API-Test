@@ -11,6 +11,7 @@
 const mongoose         = require('mongoose');
 const _                = require('lodash');
 const consultorioModel = require('./consultorio.model');
+const dispositivoModel = require('./dispositivo.model');
 
 const centroSaludSchema = new mongoose.Schema({
   _consultorios: [{ type: mongoose.Schema.Types.ObjectId, unique: true, ref: 'EAPs' }]
@@ -22,21 +23,23 @@ const centroSaludSchema = new mongoose.Schema({
 
 // VALIDACIONES
 centroSaludSchema.pre('validate', true, function (next, done) {
-  // Consultorios (para centros de salud)
-  this._consultorios.forEach((idConsultorio) => {
-    // if (idConsultorio.isDirectModified() || idConsultorio.isNew)
-      // consultorioModel.findOne({ '_id':mongoose.Types.ObjectId(idConsultorio) }, (err, eap) => {
-      consultorioModel.findById(idConsultorio, (err, consultorio) => {
-        if (err) return done(err);
-        if (!consultorio) return done(Error('No hay consultorios con esa ID'));
-        // if (consultorio.length == 0) return done(Error('No hay consultorios con esa ID'));
-        if (consultorio.esCentroSalud) return done(Error('No puedes poner un centro de salud como un consultorio'));
+  // Consultorios
+  if (this._consultorios.length > 0)
+    this._consultorios.forEach(function (idConsultorio) {
+      // if (idConsultorio.isDirectModified() || idConsultorio.isNew)
+        // consultorioModel.findOne({ '_id':mongoose.Types.ObjectId(idConsultorio) }, (err, eap) => {
+        dispositivoModel.findById(idConsultorio, function (err, consultorio) {
+          if (err) return done(err);
+          if (!consultorio) {
+            console.log('#NO EXISTE !!');
+            return done(Error(`No hay consultorios la ID ${idConsultorio}`));
+          }
 
-        console.log(consultorio);
-
-        done();
-      });
-  });
+          done();
+        });
+    });
+  else
+    done();
 
   /* var consultoriosValidos = true;
   if (this.isModified && this.esCentroSalud){
@@ -70,15 +73,6 @@ centroSaludSchema.pre('validate', true, function (next, done) {
     return done(Error('No existe el cons'));
   }*/
 
-  // Consultorios (para otros consultorios) -> array _consultorios ha de estar vacio
-  if (this.isModified && !this.esCentroSalud) {
-    let consultorios = this._consultorios;
-    if (consultorios.length > 0)
-      return done(new Error('Un consultorio no puede tener asociados otros EAPs'));
-
-    done();
-  }
-
   next();
 });
 
@@ -102,5 +96,4 @@ centroSaludSchema.pre('save', function (next) {
   next();
 });
 
-const centroSaludModel = consultorioModel.discriminator('centro-salud', centroSaludSchema);
-module.exports = centroSaludModel;
+module.exports = consultorioModel.discriminator('centro-salud', centroSaludSchema);
