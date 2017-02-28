@@ -1,9 +1,9 @@
 'use strict';
 
-const mongoose         = require('mongoose');
-const centroSaludModel = require('../models/EAPs/centro-salud.model');
-const ipOps            = require('ip');
-const _                = require('lodash');
+const mongoose   = require('mongoose');
+const lugarModel = require('../models/lugar.model');
+const ipOps      = require('ip');
+const _          = require('lodash');
 
 const dispositivoSchema = new mongoose.Schema({
   nombre: { type: String, required: true, unique: true },
@@ -48,7 +48,7 @@ dispositivoSchema.pre('save', true, function (next, done) {
     if (conjuntoIP.isDirectModified() || conjuntoIP.isNew)
       // TODO: comprobar que el isDirectModified funciona bien
       // Para cada IP modificada o nueva, se comprueba 1) si el networkID corresponde con una red existente y 2) si la IP esta en el rango de ese networkID
-      centroSaludModel.findOne({ 'redes._id': mongoose.Types.ObjectId(conjuntoIP.networkID) }, (err, lugar) => {
+      lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId(conjuntoIP.networkID) }, (err, lugar) => {
         if (!lugar)
           return done(new Error('No hay ninguna red que conincida con el networkID pasado'));
 

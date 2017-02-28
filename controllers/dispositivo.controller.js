@@ -2,7 +2,7 @@
 
 const ipOps            = require('ip');
 const mongoose         = require('mongoose');
-const centroSaludModel = require('../models/EAPs/centro-salud.model');
+const lugarModel       = require('../models/lugar.model');
 const dispositivoModel = require('../models/dispositivo.model');
 
 function getDispositivos (req, res) {
@@ -23,7 +23,7 @@ function saveDispositivo (req, res) {
     let redID = req.body.redID;
 
 	if (nombre && ip && redID){
-        /* centroSaludModel.findOne({ 'redes._id': mongoose.Types.ObjectId(redID) }, (err, lugar) => {
+        /* lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId(redID) }, (err, lugar) => {
             if (!lugar)
                 return res.status(400).send({ message: 'Error: El id de la red facilitada no existe en la BBDD.' });
         });*/
@@ -43,7 +43,7 @@ function saveDispositivo (req, res) {
 
 function testAggregation (req, res) {
     // Asi busca por networkID y devuelve el objeto completo (con el array de redes). Si hay 3 redes, 3 objetos red devuelve dentro de redes[]
-    /* centroSaludModel.findOne({ 'redes._id': mongoose.Types.ObjectId('586e4f070d061f2688a76d82') }, (err, lugar) => {
+    /* lugarModel.findOne({ 'redes._id': mongoose.Types.ObjectId('586e4f070d061f2688a76d82') }, (err, lugar) => {
         res.status(200).send(lugar);
     }); */
 
@@ -51,11 +51,11 @@ function testAggregation (req, res) {
     // Asi se puede acceder directamente a ella de forma mucho mas comoda (aunque la busqueda es mas chunga)
     const netID = '587140348f9d1bc5e56e0e00'; // '586e4f070d061f2688a76d00';
 
-    centroSaludModel.find({}, (err, lugares) => {
+    lugarModel.find({}, (err, lugares) => {
         console.log(lugares.redes);
     });
 
-    centroSaludModel.aggregate(
+    dispositivoModel.aggregate(
         [
             { $unwind:  '$redes' },
             // { $project: { redes: 1 } },

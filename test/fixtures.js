@@ -1,4 +1,5 @@
 let armunia = {
+  esCentroSalud: true,
   codigo: '170301',
   nombre: 'Armunia',
   direccion: {
@@ -21,11 +22,13 @@ let armunia = {
 };
 
 let cembranos = {
+  esCentroSalud: false,
   codigo: '17030136',
   nombre: 'Cembranos'
 };
 
 let grulleros = {
+  esCentroSalud: false,
   codigo: '17030140',
   nombre: 'Grulleros'
 };

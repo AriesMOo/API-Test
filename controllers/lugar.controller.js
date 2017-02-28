@@ -3,19 +3,43 @@
 // NOTA: el comportamiento por defecto cuando se pasan parametros que no forman
 // parte del schema (POST, PUT) es IGNORARLOS SIN AVISAR. La respuesta puede ser
 // 200 - ok y no haber actualizado nada.
-const util             = require('util');
-const centroSaludModel = require('../models/EAPs/centro-salud.model');
-const consultorioModel = require('../models/EAPs/consultorio.model');
-const logger           = require('../config/log4js.config').getLogger('lugarController');
+const util       = require('util');
+const mongoose   = require('mongoose');
+const lugarModel = require('../models/lugar.model');
+const logger     = require('../config/log4js.config').getLogger('lugarController');
 
-let modelo = centroSaludModel;
+module.exports = {
+    getLugares,
+    getLugarConcreto,
+    save,
+    update,
+    patch,
+    deleteLugar
+};
+
+/* let modelo = centroSaludModel;
 function setModeloCorrecto (req) {
   if (req.path === '/consultorios') return centroSaludModel;
   else return consultorioModel;
+}*/
+
+function consultoriosSonValidos (consultorios){
+  if (consultorios.length > 0)
+  consultorios.forEach(function (idConsultorio) {
+    // if (idConsultorio.isDirectModified() || idConsultorio.isNew)
+      lugarModel.findOne({ '_id':mongoose.Types.ObjectId(idConsultorio) }, function (err, lugar) {
+      // consultorioModel.findById(idConsultorio, function (err, consultorio) {
+        if (err) return false;
+        if (!lugar) return false;
+        if (lugar.esCentroSalud) return false;
+
+        return true;
+      });
+  });
 }
 
 function getLugares (req, res) {
-  modelo.find({})
+  lugarModel.find({})
     .then(lugares => {
       if (lugares.length == 0)
         return res.status(404).send({ message: 'No hay centros de salu' });
@@ -31,13 +55,13 @@ function getLugares (req, res) {
 function getLugarConcreto (req, res) {
   const lugarID = req.params.lugarID;
 
-  modelo.findById(lugarID)
+  lugarModel.findById(lugarID)
     .then(lugar => (lugar ? res.status(200).send(lugar) : res.status(404).send({ message: 'El ID especificado no correspondea a ningun EAP' })))
     .catch(err => res.status(500).send(err));
 }
 
 function save (req, res) {
-  let nuevoLugar = new modelo(req.body);
+  let nuevoLugar = new lugarModel(req.body);
   nuevoLugar.audit._actualizdoPorID = req.userID; // Si no viene no hay problema
 
   nuevoLugar.save()
@@ -48,7 +72,7 @@ function save (req, res) {
 function update (req, res){
   const lugarID = req.params.lugarID;
 
-  modelo.findById(lugarID)
+  lugarModel.findById(lugarID)
     .then(lugar => {
       if (!lugar)
         return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
@@ -80,11 +104,3 @@ function deleteLugar (req, res) {
 
 // TODO: incluir un handleError para manejar los errores de forma universal
 // y ademas poder tener en cuenta si estamos en produccion o no
-module.exports = {
-    getLugares,
-    getLugarConcreto,
-    save,
-    update,
-    patch,
-    deleteLugar
-};

@@ -1,0 +1,70 @@
+'use strict';
+
+const mongoose = require('mongoose');
+const _        = require('lodash');
+
+const lugarSchema = mongoose.Schema({
+    esCentroSalud: { type: Boolean, required: true },
+    codigo: { type: String, required: true, unique: true },
+    nombre: { type: String, required: true, unique: true },
+    direccion: {
+      via: String,
+      numero: Number,
+      cp: Number,
+      localidad: String,
+      notas: String
+    },
+    telefonos: [{
+        nombre: String,
+        numero: String,
+        notas: String
+    }],
+    aytoAsociado: String,
+    audit: {
+      _creadoPorID: mongoose.Schema.Types.ObjectId,
+      _actualizadoPorID: mongoose.Schema.Types.ObjectId
+    },
+    _redes: [{ type: mongoose.Schema.Types.ObjectId, unique: true, ref: 'Redes' }],
+    _consultorios: [{ type: mongoose.Schema.Types.ObjectId, unique: true, ref: 'EAPs' }],
+},{
+    timestamps: {
+      creadoEn: 'created_at',
+      actualizadoEn: 'updated_at'
+    }
+});
+
+lugarSchema.pre('validate', function (next){
+  // Codigo centros(2) y consultorios(4)
+  if (this.esCentroSalud && !/^(1703)\d{2}$/.test(this.codigo) )
+    return next(Error('El codigo del centro de salud debe ser en forma 1703xx (donde las "x" son otros numeros)'));
+
+  if (!this.esCentroSalud && !/^(1703)\d{4}$/.test(this.codigo))
+    return next(Error('El codigo del consultorio debe ser en forma 1703xxxx (donde las "x" son otros numeros'));
+
+  // Consultorios (para otros consultorios) -> array _consultorios ha de estar vacio
+  if (this.isModified && !this.esCentroSalud) {
+    let consultorios = this._consultorios;
+    if (consultorios.length > 0)
+      return next(Error('Un consultorio no puede tener asociados otros EAPs'));
+  }
+
+  // Users de audit (con UserModel.findById)
+
+  // EAPs con la bandera de consultorios a false tiene que tener vacio el array de consultorios
+
+  next();
+});
+
+// STUFF TODO BEFORE SAVE DATA
+lugarSchema.pre('save', function (next) {
+  if (this.isDirectModified('nombre' || this.nombre.isNew ))
+    this.nombre = this.nombre.toLowerCase();
+
+  // Garantiza que no haya duplicados en los ids de los consultorios porque el unique no va bien
+  if (this.isModified && this.esCentroSalud)
+    this._consultorios = _.uniqWith(this._consultorios, _.isEqual);
+
+  next();
+});
+
+module.exports = mongoose.model('EAPs', lugarSchema);
