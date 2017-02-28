@@ -2,7 +2,7 @@
 
 const ipOps            = require('ip');
 const mongoose         = require('mongoose');
-const centroSaludModel = require('../models/consultorio.model').centroSaludModel;
+const centroSaludModel = require('../models/EAPs/centro-salud.model');
 const dispositivoModel = require('../models/dispositivo.model');
 
 function getDispositivos (req, res) {

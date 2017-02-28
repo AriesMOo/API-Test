@@ -4,8 +4,8 @@
 // parte del schema (POST, PUT) es IGNORARLOS SIN AVISAR. La respuesta puede ser
 // 200 - ok y no haber actualizado nada.
 const util             = require('util');
-const centroSaludModel = require('../models/consultorio.model').centroSaludModel;
-const consultorioModel = require('../models/consultorio.model').consultorioModel;
+const centroSaludModel = require('../models/EAPs/centro-salud.model');
+const consultorioModel = require('../models/EAPs/consultorio.model');
 const logger           = require('../config/log4js.config').getLogger('lugarController');
 
 let modelo = centroSaludModel;
@@ -18,7 +18,7 @@ function getLugares (req, res) {
   modelo.find({})
     .then(lugares => {
       if (lugares.length == 0)
-        res.status(404).send({ message: 'No hay centros/consultorios' });
+        return res.status(404).send({ message: 'No hay centros de salu' });
 
       res.status(200).send(lugares);
     })

@@ -7,7 +7,8 @@ const authController         = require('../controllers/user');
 const dispositivoController  = require('../controllers/dispositivo.controller');
 const centrosSaludController = require('../controllers/lugar.controller.js');
 const apiRouter              = express.Router();
-const consultorioModel       = require('../models/consultorio.model').consultorioModel;
+
+const consultorioModel       = require('../models/EAPs/consultorio.model');
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 apiRouter.get('/', (req, res) => {
@@ -40,7 +41,7 @@ apiRouter.route('/consultorios')
     consultorioModel.find({ '__t': { '$exists': false } })
       .then(lugares => {
         if (lugares.length == 0)
-          res.status(404).send({ message: 'No hay centros/consultorios' });
+          return res.status(404).send({ message: 'No hay consultorios' });
 
         res.status(200).send(lugares);
       })

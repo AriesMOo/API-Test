@@ -1,29 +1,82 @@
 /**
  * Se definen dos esquemas, uno para consultorios y otro para centros de salud.
- * Los centros de salud heredan de consultorios con los 'discriminators' de
- * mongoose. Los hooks de pre y post tambien se heredan.
- *
- * Va todo a la misma 'tabla' (coleccion en mongo) y se distinguen por el campo
- * discriminador por defecto __t:
+ * Ambos se definen a partir del baseSchema comun. Los centros de salud anaden
+ * un array de IDs de consultorios unicamente.
  */
 'use strict';
 
 const mongoose         = require('mongoose');
-const extend           = require('mongoose-schema-extend');
 const _                = require('lodash');
+const baseSchema       = require('./baseSchema');
 const consultorioModel = require('./consultorio.model');
-const dispositivoModel = require('./dispositivo.model');
 
-const centroSaludSchema = new mongoose.Schema({
-  _consultorios: [{ type: mongoose.Schema.Types.ObjectId, unique: true, ref: 'EAPs' }]
+// Primero copiamos el esquema base en un nuevo objeto, y le anadimos el campo _consultorios
+let schemaBuilder = {};
+Object.assign(schemaBuilder, baseSchema);
+// schemaBuilder._consultorios = [{ type: mongoose.Schema.Types.ObjectId, unique: true, ref: 'Consultorios' }];
+schemaBuilder._consultorios = [{ type: String }];
+
+// Ahora ya se crea el mongoose-Schema con los campos timestamps adicionales
+const centroSaludSchema = new mongoose.Schema(schemaBuilder, {
+  timestamps: {
+    creadoEn: 'created_at',
+    actualizadoEn: 'updated_at'
+  }
 });
 
 /* centroSaludSchema.statics.consultorioValido = function (idConsultorio, fnCb) {
   this.find({ '_id':mongoose.Types.ObjectId(idConsultorio) }, fnCb);
 };*/
 
-// VALIDACIONES
-centroSaludSchema.pre('validate', true, function (next, done) {
+// ** VALIDACIONES (en paralelo)
+centroSaludSchema.pre('save', true, function (next, done) {
+  // Check consultorios validos
+  if (this._consultorios.length > 0)
+    this._consultorios.forEach(function (idConsultorio) {
+      // if (idConsultorio.isDirectModified() || idConsultorio.isNew)
+        consultorioModel.findOne({ '_id':mongoose.Types.ObjectId(idConsultorio) }, function (err, consultorio) {
+        // consultorioModel.findById(idConsultorio, function (err, consultorio) {
+          if (err) return done(err);
+          if (!consultorio) {
+            console.log(`No existe el consultorio con ID: ${idConsultorio}`);
+            return done(Error(`No hay consultorios con ID ${idConsultorio}`));
+          }
+
+          // console.log(`Por lo visto existe el consultorio ${consultorio}`);
+
+          done();
+        });
+    });
+  else
+    done();
+
+  next();
+});
+
+// ** VALIDACIONES (en serie)
+centroSaludSchema.pre('validate', function (next) {
+  // Codigo
+  if (!/^(1703)\d{2}$/.test(this.codigo))
+    return next(Error('El codigo debe ser en forma 1703xx (donde las "x" son otros numeros)'));
+
+  next();
+});
+
+// ** STUFF TODO BEFORE SAVE DATA
+centroSaludSchema.pre('save', function (next) {
+  if (this.isDirectModified('nombre' || this.nombre.isNew ))
+    this.nombre = this.nombre.toLowerCase();
+
+  // Garantiza que no haya duplicados en los ids de los consultorios porque el unique no va bien
+  if (this.isModified)
+    this._consultorios = _.uniqWith(this._consultorios, _.isEqual);
+
+  next();
+});
+
+module.exports = mongoose.model('centros-salud', centroSaludSchema);
+
+/* centroSaludSchema.pre('validate', true, function (next, done) {
   // Consultorios
   if (this._consultorios.length > 0)
     this._consultorios.forEach(function (idConsultorio) {
@@ -72,7 +125,7 @@ centroSaludSchema.pre('validate', true, function (next, done) {
     console.log('#-#-#- INVALIDANDO QUE ES GERUNDIO');
     this.invalidate('_consultorios', 'No  hay ningun EAP con la Id pasada');
     return done(Error('No existe el cons'));
-  }*/
+  }
 
   next();
 });
@@ -92,9 +145,7 @@ centroSaludSchema.pre('save', function (next) {
 
         console.log(eap);
       });
-  });*/
+  });
 
   next();
-});
-
-// module.exports = consultorioModel.discriminator('centro-salud', centroSaludSchema);
+});*/
