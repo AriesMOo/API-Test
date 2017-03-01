@@ -5,6 +5,7 @@ const chai       = require('chai');
 const chaiHttp   = require('chai-http');
 const lugarModel = require('../models/lugar.model');
 const fixtures   = require('./fixtures');
+const logger     = require('../config/log4js.config').getLogger('MODEL SPEC');
 const should     = chai.should;
 const expect     = chai.expect;
 
@@ -52,6 +53,7 @@ describe('[X] TEST LUGAR MODEL:', function () {
 
 				expect(err).to.not.exist;
 				expect(lugarGuardado).exist;
+
 				done();
 			});
 		});
@@ -197,7 +199,7 @@ describe('[X] TEST LUGAR MODEL:', function () {
                 done();
               })
               .catch(err => done(new Error(err.response.text)) );
-          })
+            })
           .catch(err => done(new Error(`ArmuniaID no parece existir -> ${err}`)));
       });
 
@@ -206,6 +208,17 @@ describe('[X] TEST LUGAR MODEL:', function () {
       it('Se pueden actualizar los telefonos');
       it('Se pueden borrar los telefonos');
 			it('Los datos de audit (fecha y users) son correctos');
+
+      it('Se puede borrar un centro standard (vacio, sin redes ni consultorios)', function (done) {
+        chai.request(server)
+          .del(`/eaps/${IDarmuniaMetidoDesdeBBDD}`)
+            .then(res => {
+              expect(res).to.have.status(200);
+
+              done();
+              })
+            .catch((err) => done(err) );
+      });
     });
 
     // CONSULTORIOS------------------------------------------------------------
@@ -308,7 +321,7 @@ describe('[X] TEST LUGAR MODEL:', function () {
               .put(`/eaps/${armuniaID}`)
               .send(nuevoArmunia)
               .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
-              .catch(err => { console.log(err); done(); });
+              .catch(err => done() );
           });
       });
 
@@ -359,6 +372,40 @@ describe('[X] TEST LUGAR MODEL:', function () {
           });
       });
 
+      it('Si se manda algo que no es un array al campo _consultorios: no se rompe nada', function (done){
+        chai.request(server)
+          .get(`/eaps/${armuniaID}`)
+          .end((err, res) => {
+            expect(err).to.not.exist;
+            expect(res).to.have.status(200);
+
+            let nuevoArmunia = res.body;
+            nuevoArmunia._consultorios = 'hoyga uste !';
+            chai.request(server)
+              .put(`/eaps/${armuniaID}`)
+              .send(nuevoArmunia)
+              .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
+              .catch(err => done() );
+          });
+      });
+
+      it('No se puede eliminar Armunia (tiene consultorios)', function (done) {
+        chai.request(server)
+          .del(`/eaps/${armuniaID}`)
+            .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
+            .catch(err => done() );
+      });
+
+      it('No se puede eliminar un centro que no existe (y no se rompe nada)', function (done) {
+        // Se usa el ID del primer centro que se mete (que se ha borrado antes)
+        chai.request(server)
+          .del(`/eaps/${armuniaID}`)
+            .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
+            .catch(err => done() );
+      });
+
+      it('No se pueden agregar consultorios a un consultorio');
+
       it('Tas todas las pruebas, Armunia tiene 2 consultorios UNICAMENTE', function (done) {
         chai.request(server)
           .get(`/eaps/${armuniaID}`)
@@ -371,8 +418,6 @@ describe('[X] TEST LUGAR MODEL:', function () {
           });
       });
 
-      it('No se pueden agregar consultorios a un consultorio');
-      it('Si se manda algo que no es un array al campo _consultorios: no se rompe nada');
       it('Se puede eliminar un consultorio de un centro de salud');
     });
 

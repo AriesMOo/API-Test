@@ -1,12 +1,12 @@
 'use strict';
 
-const express                = require('express');
-const config                 = require('../config/config');
-const productController      = require('../controllers/product');
-const authController         = require('../controllers/user');
-const dispositivoController  = require('../controllers/dispositivo.controller');
-const centrosSaludController = require('../controllers/lugar.controller.js');
-const apiRouter              = express.Router();
+const express               = require('express');
+const config                = require('../config/config');
+const productController     = require('../controllers/product');
+const authController        = require('../controllers/user');
+const dispositivoController = require('../controllers/dispositivo.controller');
+const lugaresController     = require('../controllers/lugar.controller.js');
+const apiRouter             = express.Router();
 
 // Ruta por defecto (/) que al estar aqui ahora se refiere a localhost/api
 apiRouter.get('/', (req, res) => {
@@ -26,13 +26,12 @@ apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
 apiRouter.post('/dispositivos', dispositivoController.saveDispositivo);
 
 apiRouter.route('/eaps')
-  .get(centrosSaludController.getLugares)
-  .post(centrosSaludController.save);
+  .get(lugaresController.getLugares)
+  .post(lugaresController.save);
 apiRouter.route('/eaps/:lugarID')
-  .get(centrosSaludController.getLugarConcreto)
-  .put(centrosSaludController.update)
-  .patch(centrosSaludController.patch);
-  // .delete(lugaresController.deleteProduct);
+  .get(lugaresController.getLugarConcreto)
+  .put(lugaresController.update)
+  .delete(lugaresController.deleteLugar);
 
 /** test */
 

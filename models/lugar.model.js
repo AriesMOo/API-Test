@@ -57,8 +57,6 @@ lugarSchema.pre('validate', function (next){
 
   // Users de audit (con UserModel.findById)
 
-  // EAPs con la bandera de consultorios a false tiene que tener vacio el array de consultorios
-
   next();
 });
 
