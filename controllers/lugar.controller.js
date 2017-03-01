@@ -108,54 +108,49 @@ function save (req, res) {
 
 function update (req, res){
   const lugarID = req.params.lugarID;
+  let arrayIDsConsultorios = req.body._consultorios;
 
-  lugarModel.findById(lugarID)
-    .then(lugar => {
-      if (!lugar)
-        return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
+  // Primero ejecuta (esperando, de forma asincrona) la funcion iteratee
+  // Cuando ha terminado (CON TODOS), salta al callback que es la siguiente
+  // funcion (cb). Lugar donde ya se mira si existe el lugarID que se pasa
+  // y se hace el update 'normal'. Si no hay consultorios no pasa nada porque
+  // ejecuta directamnte la funcion callback.
+  // Se hace asi por la asincronia. LLevo 7 dias investigando esto, y es la unica
+  // forma en la que funciona bien. Es una ejecucion del reves... primero se
+  // miran si los consultorios son validos, luego si el lugar sobre el que hay
+  // que operar existe (es valido) y por ultimo ya se intenta salvar
+  // Se ve que res y req son accesibles globalmente y por eso se puede interrumpir
+  // desde donde saa la ejecucion.
+  // Si se separan las funciones, se pisan las ejecuciones de res.send() y da error
+  async.each(arrayIDsConsultorios, function iteratee (id, callback) {
+    lugarModel.findById(id, function (err, consult) {
+      if (err) return callback(err);
+      if (!consult) return callback(`El ID ${id} no corresponde a ningun consultorio`);
+      if (consult.esCentroSalud) return callback(`El ID ${id} es un centro de salud (no puedes agregar centros a otros centros como si fueran consultorios)`);
 
-      // Se saca la info del bodyrequest (la que se haya enviado)
-      for (let key in req.body) {
-        if (key == '_consultorios') {
-          let IDsConsultorios = req.body[key];
-          async.each(IDsConsultorios, function iteratee (id, callback) {
-            lugarModel.findOne({ '_id':mongoose.Types.ObjectId(id) }, function (err, consult) {
-              if (err) return callback(err);
-              if (!consult) return callback(`El ID ${id} no corresponde a ningun consultorio`);
-              if (consult.esCentroSalud) return callback(`El ID ${id} es un centro de salud (no puedes agregar centros a otros centros como si fueran consultorios)`);
+      callback(); // Es la funcion de mas abajo
+    });
+  }, function cb (err){
+    if (err) res.status(500).send(err);
+    else {
+      lugarModel.findById(lugarID)
+        .then(lugar => {
+          if (!lugar) return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
 
-              logger.debug(`Pues existe el ID: ${id}`);
-              callback();
-            });
+          // Se saca la info del bodyrequest (la que se haya enviado)
+          for (let key in req.body) {
+            lugar[key] = req.body[key];
+          }
 
-          }, function (err){
-            if (err){
-              logger.error(`Hay algun consultorio malo: ${err}`);
-              res.status(500).end(err);
-              // lugar.invalidate('_consultorios');
-            } else {
-              logger.debug('Pues todos los consultorios estan bien formados...');
-              return true;
-            }
-          });
-          /* if (!consultoriosSonValidos(IDsConsultorios))
-            return res.status(404).send({ message: `Los consultorios no estan bien formados > ${IDsConsultorios}` });*/
-        }
+          lugar.audit._actualizdoPorID = req.userID; // Si no viene no pasa nada
 
-        // Si no hay problemas con los consultorios, mete toda la info en el nuevo lugar (si luego la info no existe en el modelo, no pasa nada, se ignora)
-        lugar[key] = req.body[key];
-      }
-
-      if (!res.headersSent) {
-        lugar.audit._actualizdoPorID = req.userID; // Si no viene no pasa nada
-
-        lugar.save()
-          .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
-          .catch(err => res.status(500).send({ message: `No se ha podido guardar el registro ya actualizado en la BBDD. ${err}` }));
-      } else
-        logger.info('##aqui acaba la cosa');
-    })
-    .catch(err => res.status(500).send({ message: `No se ha podido actualizar en la BBDD. ${err}` }));
+          lugar.save()
+            .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
+            .catch(err => res.status(500).send({ message: `No se ha podido guardar el registro ya actualizado en la BBDD. ${err}` }));
+        })
+        .catch(err => res.status(500).send({ message: `No se ha podido actualizar en la BBDD. ${err}` }));
+    }
+  });
 }
 
 function patch (req, res) {

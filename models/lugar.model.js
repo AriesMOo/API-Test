@@ -48,6 +48,13 @@ lugarSchema.pre('validate', function (next){
       return next(Error('Un consultorio no puede tener asociados otros EAPs'));
   }
 
+  // Consultorios (en centros) con IDs duplicados
+  if (this.isModified && this.esCentroSalud){
+    let tempArr = _.uniqWith(this._consultorios, _.isEqual);
+    if (this._consultorios.length > tempArr.length)
+      return next(Error('No se permiten IDs duplicados dentro de _consultorios'));
+  }
+
   // Users de audit (con UserModel.findById)
 
   // EAPs con la bandera de consultorios a false tiene que tener vacio el array de consultorios
@@ -59,10 +66,6 @@ lugarSchema.pre('validate', function (next){
 lugarSchema.pre('save', function (next) {
   if (this.isDirectModified('nombre' || this.nombre.isNew ))
     this.nombre = this.nombre.toLowerCase();
-
-  // Garantiza que no haya duplicados en los ids de los consultorios porque el unique no va bien
-  if (this.isModified && this.esCentroSalud)
-    this._consultorios = _.uniqWith(this._consultorios, _.isEqual);
 
   next();
 });

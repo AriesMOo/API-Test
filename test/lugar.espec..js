@@ -271,14 +271,9 @@ describe('[X] TEST LUGAR MODEL:', function () {
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
               .send(nuevoArmunia)
-              .then(res => {
-                expect(res).to.have.status(200);
-                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(1);
-
-                done();
-              })
-              .catch(err => done(new Error(err.response.text)) );
-          });
+              .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
+              .catch(err => done());
+           });
       });
 
       it('No se pueden agregar ids que no existen a _consultorios', function (done){
@@ -294,17 +289,12 @@ describe('[X] TEST LUGAR MODEL:', function () {
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
               .send(nuevoArmunia)
-              .then(res => {
-                expect(res).to.have.status(200);
-                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(1);
-
-                done();
-              })
-              .catch(err => done(new Error(err.response.text)) );
-          });
+              .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
+              .catch(err => done());
+            });
       });
 
-      /* it('No se pueden agregar consultorios cuyo id es un centro a _consultorios', function (done){
+      it('No se pueden agregar consultorios cuyo id es un centro a _consultorios', function (done){
         chai.request(server)
           .get(`/eaps/${armuniaID}`)
           .end((err, res) => {
@@ -317,17 +307,12 @@ describe('[X] TEST LUGAR MODEL:', function () {
             chai.request(server)
               .put(`/eaps/${armuniaID}`)
               .send(nuevoArmunia)
-              .then(res => {
-                expect(res).to.have.status(200);
-                expect(res.body.lugarGuardado._consultorios.length).to.be.equal(1);
-
-                done();
-              })
-              .catch(err => done(new Error(err.message)) );
+              .then(res => done(new Error(`Se deberia generar un error y se ha llegado a una respuesta (500, 404, 200): ${res.status}`)) )
+              .catch(err => { console.log(err); done(); });
           });
-      });*/
+      });
 
-      /* it('Se puede anadir un segundo consultorio (GRULLEROS)', function (done) {
+      it('Se puede anadir un segundo consultorio (GRULLEROS)', function (done) {
         chai.request(server)
 					.post('/eaps')
 					.send(fixtures.grulleros)
@@ -371,6 +356,18 @@ describe('[X] TEST LUGAR MODEL:', function () {
                 done();
               })
               .catch(err => done(Error(err.message)) );
+          });
+      });
+
+      it('Tas todas las pruebas, Armunia tiene 2 consultorios UNICAMENTE', function (done) {
+        chai.request(server)
+          .get(`/eaps/${armuniaID}`)
+          .end((err, res) => {
+            expect(err).to.not.exist;
+            expect(res).to.have.status(200);
+            expect(res.body._consultorios.length == 2);
+
+            done();
           });
       });
 
@@ -426,7 +423,7 @@ describe('[X] TEST LUGAR MODEL:', function () {
 
             done();
           });
-      });*/
+      });
 		});
 	});
 });
