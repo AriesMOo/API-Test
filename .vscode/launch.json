@@ -7,15 +7,33 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Iniciar programa",
-      "program": "${workspaceRoot}/server.js",
-      "cwd": "${workspaceRoot}"
+      "name": "Launch via NPM",
+      "runtimeExecutable": "npm",
+      "windows": {
+        "runtimeExecutable": "npm.cmd"
+      },
+      "runtimeArgs": [
+        "start"
+        /* "run-script",
+        "debug"*/
+      ],
+      "port": 3000,
+      "cwd": "${workspaceRoot}",
+      "timeout": 100000
     },
     {
       "type": "node",
       "request": "attach",
-      "name": "Asociar al proceso",
-      "port": 5858
+      "name": "Attach to Process",
+      "processId": "${command.PickProcess}",
+      "port": 3000
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Iniciar programa",
+      "program": "${workspaceRoot}/server.js",
+      "cwd": "${workspaceRoot}"
     }
   ]
 }
