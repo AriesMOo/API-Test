@@ -1,0 +1,2 @@
++Mejora Cambiar la estructura de ficheros a algo similar a Angular2 - components/lugares/lugar.model.js lugar.controller.js lugar.routes.js y quiza lugar.test.js
+(A) +Pendiente Completar CRUD basico para RED.model y DISPOSITIVO.model
