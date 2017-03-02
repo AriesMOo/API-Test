@@ -20,13 +20,13 @@ const redSchema = new mongoose.Schema({
 });
 
 // Metodos de instancia
-redSchema.method.getLugar = function (cb) {
+redSchema.methods.getLugar = function (cb) {
   return this.model('EAPs').find({ _redes: this._id }, cb);
 };
 
-redSchema.method.getDispositivos = function (cb) {
+redSchema.methods.getDispositivos = function (cb) {
   // FIXME: evidentemente esto no funciona... xD
-  return this.model('Dispositivos').find({ 'IPs._networkID': this._id }, cb);
+  return this.model('Dispositivos').find({ IPs: { $elemMatch: { _networkID: this._id } } }, cb);
 };
 
 // VALIDACIONES
