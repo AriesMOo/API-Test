@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const async    = require('async');
 const _        = require('lodash');
 
 const lugarSchema = mongoose.Schema({
@@ -33,6 +34,7 @@ const lugarSchema = mongoose.Schema({
     }
 });
 
+// Validacion base inicial
 lugarSchema.pre('validate', function (next){
   // Codigo centros(2) y consultorios(4)
   if (this.esCentroSalud && !/^(1703)\d{2}$/.test(this.codigo) )
@@ -59,6 +61,21 @@ lugarSchema.pre('validate', function (next){
 
   next();
 });
+
+// Validacion de consultorios con consulta asincrona
+async.each(this._consultorios, function iteratee (id, callback) {
+  this.model('EAPs').findById(id, function (err, consult) {
+    if (err) return callback(err);
+    if (!consult) return callback(`El ID ${id} no corresponde a ningun consultorio`);
+    if (consult.esCentroSalud) return callback(`El ID ${id} es un centro de salud (no se puede agregar centros a otros centros como si estos fueran consultorios)`);
+
+    console.log(`########### ${consult}`);
+    callback(); // Es la funcion de mas abajo
+    });
+  }, function cb (err){
+    if (err) this.invalidate('_consultorios', err);
+  }
+);
 
 // STUFF TODO BEFORE SAVE DATA
 lugarSchema.pre('save', function (next) {
