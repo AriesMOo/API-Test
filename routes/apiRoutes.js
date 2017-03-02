@@ -3,7 +3,6 @@
 const express               = require('express');
 const config                = require('../config/config');
 const productController     = require('../controllers/product');
-const authController        = require('../controllers/user');
 const dispositivoController = require('../controllers/dispositivo.controller');
 const lugaresController     = require('../controllers/lugar.controller.js');
 const apiRouter             = express.Router();
@@ -16,6 +15,7 @@ apiRouter.get('/', (req, res) => {
               <li><a href="http://localhost:${config.port}/api/products">Products</a></li>
               <li><a href="http://localhost:${config.port}/api/dispositivos">Dispositivos</a></li>
               <li><a href="http://localhost:${config.port}/api/eaps">EAPs (lugares)</a></li>
+              <li><a href="http://localhost:${config.port}/api/redes">Redes</a></li>
             </ul>`);
 });
 
@@ -36,8 +36,8 @@ apiRouter.route('/eaps/:lugarID')
 /** test */
 
 // Rutas de API
-apiRouter.all('*', authController.ensureAuthenticationMiddleware);
-// Se protegen todas las rutas (apiRouter.all)
+  // apiRouter.all('*', authController.ensureAuthenticationMiddleware); Ya se protegen en server.js
+  // Se protegen todas las rutas (apiRouter.all)
 apiRouter.get('/product/:productId', productController.getProduct);
 apiRouter.get('/products', productController.getProducts);
 apiRouter.post('/product', productController.saveProduct);

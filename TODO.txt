@@ -1,2 +1,6 @@
-+Mejora Cambiar la estructura de ficheros a algo similar a Angular2 - components/lugares/lugar.model.js lugar.controller.js lugar.routes.js y quiza lugar.test.js
-(A) +Pendiente Completar CRUD basico para RED.model y DISPOSITIVO.model
+(A) Completar CRUD basico para RED.model y DISPOSITIVO.model
+Feature dispositivos
+Si los dispositivos tienen mas de una IP, señalizar de alguna manera
++Mejora Cambiar la estructura del resto de ficheros a algo similar a Angular2 - components/lugares/lugar.model.js lugar.controller.js lugar.routes.js y quiza lugar.test.js
++Mejora +Specs Cambiar los tests para hacer que corran autonomos (si node y mongoose no estan, no hacer test)
++Mejora +Specs Cambiar los npm test para ejecutar en el orden necesario

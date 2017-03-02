@@ -11,14 +11,22 @@ const redSchema = new mongoose.Schema({
   audit: {
     _creadoPorID: mongoose.Schema.Types.ObjectId,
     _actualizadoPorID: mongoose.Schema.Types.ObjectId
-  },
-  _lugar: { type: mongoose.Schema.Types.ObjectId, unique: true, ref: 'EAPs' },
+  }
 },{
   timestamps: {
     creadoEn: 'created_at',
     actualizadoEn: 'updated_at'
   }
 });
+
+// REVISAR: hacerlo con un virutal mejor ??
+redSchema.method.getLugar = function (cb) {
+  return this.model('EAPs').find({ _redes: this._id }, cb);
+};
+
+redSchema.method.getDispositivos = function (cb) {
+  return this.model('Dispositivos').find({ 'IPs._networkID': this._id }, cb);
+};
 
 // VALIDACIONES
 redSchema.pre('validate', function (next){
