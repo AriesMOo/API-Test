@@ -33,8 +33,16 @@ let grulleros = {
   nombre: 'Grulleros'
 };
 
+let redArmunia = {
+  cidr: '10.46.210.0/26',
+  gateway: '10.46.210.1',
+  tipo: 'centro',
+  notas: 'Son unas noticas...'
+};
+
 module.exports = {
   armunia,
   cembranos,
-  grulleros
+  grulleros,
+  redArmunia
 };

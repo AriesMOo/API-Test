@@ -5,7 +5,7 @@ const ipOps    = require('ip');
 
 const redSchema = new mongoose.Schema({
   cidr: { type: String, required: true, unique: true }, // Da problemas al guardar centros sin redes ()
-  gateway: { type: Number, required: true },
+  gateway: { type: String, required: true },
   tipo: { type: String, required: true, enum: ['centro', 'medora', 'veterinarios/farmas', 'consultorios', 'rango viejo'] },
   notas: String,
   audit: {
@@ -19,12 +19,13 @@ const redSchema = new mongoose.Schema({
   }
 });
 
-// REVISAR: hacerlo con un virutal mejor ??
+// Metodos de instancia
 redSchema.method.getLugar = function (cb) {
   return this.model('EAPs').find({ _redes: this._id }, cb);
 };
 
 redSchema.method.getDispositivos = function (cb) {
+  // FIXME: evidentemente esto no funciona... xD
   return this.model('Dispositivos').find({ 'IPs._networkID': this._id }, cb);
 };
 
@@ -36,9 +37,18 @@ redSchema.pre('validate', function (next){
     return next(Error(`El cidr ${this.cidr} no tiene un formato valido`));
 
   // Gateway
-  let ipGw = ipOps.fromLong(this.gateway);
+  /* let ipGw = ipOps.fromLong(this.gateway);
   if (!ipOps.cidrSubnet(this.cidr).contains(ipGw))
-      return next(Error(`El gateway ${ipGw} no pertenece al rango del CIDR o no tiene un formato válido`));
+      return next(Error(`El gateway ${ipGw} no pertenece al rango del CIDR o no tiene un formato válido`));*/
+
+  // Viene del frontend, asi que no estara convertida a Long
+  const regExIP = /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/;
+  if (!regExIP.test(this.gateway))
+    return next(Error(`El gateway ${this.gateway} no es una IP valida`) );
+  if (!ipOps.cidrSubnet(this.cidr).contains(this.gateway))
+    return next(Error(`El gateway ${this.gateway} no pertenece al rango del CIDR o no tiene un formato válido`));
+
+  next();
 });
 
 redSchema.pre('save', function (next) {

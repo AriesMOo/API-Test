@@ -55,24 +55,50 @@ function save (req, res) {
 
 function update (req, res){
   const lugarID = req.params.lugarID;
+  let arrayIDsConsultorios = req.body._consultorios;
 
- lugarModel.findById(lugarID)
-  .then(lugar => {
-    if (!lugar) return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
-    if (!lugar.esCentroSalud) return res.status(400).send({ message: 'No puedes asociar un consultorio a otro consultorio' });
+  // Primero ejecuta (esperando, de forma asincrona) la funcion iteratee
+  // Cuando ha terminado (CON TODOS), salta al callback que es la siguiente
+  // funcion (cb). Lugar donde ya se mira si existe el lugarID que se pasa
+  // y se hace el update 'normal'. Si no hay consultorios no pasa nada porque
+  // ejecuta directamnte la funcion callback.
+  // Se hace asi por la asincronia. LLevo 7 dias investigando esto, y es la unica
+  // forma en la que funciona bien. Es una ejecucion del reves... primero se
+  // miran si los consultorios son validos, luego si el lugar sobre el que hay
+  // que operar existe (es valido) y por ultimo ya se intenta salvar
+  // Se ve que res y req son accesibles globalmente y por eso se puede interrumpir
+  // desde donde saa la ejecucion.
+  // Si se separan las funciones, se pisan las ejecuciones de res.send() y da error
+  async.each(arrayIDsConsultorios, function iteratee (id, callback) {
+    lugarModel.findById(id, function (err, consult) {
+      if (err) return callback(err);
+      if (!consult) return callback(`El ID ${id} no corresponde a ningun consultorio`);
+      if (consult.esCentroSalud) return callback(`El ID ${id} es un centro de salud (no puedes agregar centros a otros centros como si fueran consultorios)`);
 
-    // Se saca la info del bodyrequest (la que se haya enviado)
-    for (let key in req.body) {
-      lugar[key] = req.body[key];
+      callback(); // Es la funcion de mas abajo
+    });
+  }, function cb (err){
+    if (err) res.status(500).send(err);
+    else {
+      lugarModel.findById(lugarID)
+        .then(lugar => {
+          if (!lugar) return res.status(400).send({ message: 'ID no corresponde a ningun EAP' });
+          if (!lugar.esCentroSalud) return res.status(400).send({ message: 'No puedes asociar un consultorio a otro consultorio' });
+
+          // Se saca la info del bodyrequest (la que se haya enviado)
+          for (let key in req.body) {
+            lugar[key] = req.body[key];
+          }
+
+          lugar.audit._actualizdoPorID = req.userID; // Si no viene no pasa nada
+
+          lugar.save()
+            .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
+            .catch(err => res.status(500).send({ message: `No se ha podido guardar el registro ya actualizado en la BBDD. ${err}` }));
+          })
+        .catch(err => res.status(500).send({ message: `No se ha podido actualizar en la BBDD. ${err}` }));
     }
-
-    lugar.audit._actualizdoPorID = req.userID; // Si no viene no pasa nada
-
-    lugar.save()
-      .then(lugarGuardado => res.status(200).send({ lugarGuardado }))
-      .catch(err => res.status(500).send({ message: `No se ha podido guardar el registro ya actualizado en la BBDD. ${err}` }));
-    })
-  .catch(err => res.status(500).send({ message: `No se ha podido actualizar en la BBDD. ${err}` }));
+  });
 }
 
 function deleteLugar (req, res) {

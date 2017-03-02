@@ -212,12 +212,12 @@ describe('[X] TEST LUGAR MODEL:', function () {
       it('Se puede borrar un centro standard (vacio, sin redes ni consultorios)', function (done) {
         chai.request(server)
           .del(`/eaps/${IDarmuniaMetidoDesdeBBDD}`)
-            .then(res => {
+          .then(res => {
               expect(res).to.have.status(200);
 
               done();
-              })
-            .catch((err) => done(err) );
+            })
+          .catch((err) => done(err) );
       });
     });
 

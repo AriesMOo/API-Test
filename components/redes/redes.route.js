@@ -4,7 +4,8 @@ const router  = require('express').Router();
 const redCtrl = require('./red.controller');
 
 router.route('/redes')
-  .get(redCtrl.getRedes);
+  .get(redCtrl.getRedes)
+  .post(redCtrl.save);
 
 router.route('/redes/:redID')
   .get(redCtrl.getRedConcreta)
