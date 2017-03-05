@@ -15,3 +15,4 @@ http://stackoverflow.com/questions/13582862/mongoose-pre-save-async-middleware-n
 WTF is going on with the promises. Al ser asincronas... no churrula bien los return next(new Error())
 pq creo que se salen de la rutina de la promesa/consulta y no del flujo principal del schema.pre('validate')
 o schema.pre('save')
+ASINCRONIA amigo... asincronia... todo es culpa de la puta asincronia.

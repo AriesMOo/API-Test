@@ -65,4 +65,4 @@ dispositivoSchema.pre('save', true, function (next, done) {
   next();
 });
 
-module.exports = mongoose.model('Dispositivo', dispositivoSchema);
+module.exports = mongoose.model('Dispositivos', dispositivoSchema);

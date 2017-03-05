@@ -9,10 +9,14 @@ const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP
 const morgan         = require('morgan');
 const sriracha       = require('sriracha');
 const logger         = require('./config/log4js.config').getLogger('InicioApp'); // .getDefaultLogger();
-const apiRouter      = require('./routes/apiRoutes');
-const generalRouter  = require('./routes/generalRoutes');
-const authUserRouter = require('./routes/authUserRoutes');
+const authController = require('./controllers/user');
 const config         = require('./config/config');
+
+// Routers
+const generalRouter  = require('./routes/generalRoutes');
+const apiRouter      = require('./routes/apiRoutes');
+const redesRouter    = require('./components/redes/redes.route');
+const authUserRouter = require('./routes/authUserRoutes');
 
 const loggerFichero = require('./config/log4js.config').getLogger('stockApp');
 
@@ -59,6 +63,8 @@ mongoose.connect(config.db, (err, res) => {
 // Configuramos routers con rutas base. A veces pude dar problemas si se hace antes/despuesde otros modulos
 app.use('/', generalRouter);
 app.use('/api', apiRouter);
+app.use('/api', redesRouter);
+app.use('/api', express.Router().all('*', authController.ensureAuthenticationMiddleware));
 app.use('/user', authUserRouter);
 
 // Arrancamos la aplicacion en el puerto especificado

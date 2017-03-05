@@ -212,12 +212,12 @@ describe('[X] TEST LUGAR MODEL:', function () {
       it('Se puede borrar un centro standard (vacio, sin redes ni consultorios)', function (done) {
         chai.request(server)
           .del(`/eaps/${IDarmuniaMetidoDesdeBBDD}`)
-            .then(res => {
+          .then(res => {
               expect(res).to.have.status(200);
 
               done();
-              })
-            .catch((err) => done(err) );
+            })
+          .catch((err) => done(err) );
       });
     });
 
@@ -423,11 +423,60 @@ describe('[X] TEST LUGAR MODEL:', function () {
 
     // REDES-------------------------------------------------------------------
     describe('>>Tests con REDES (/api/eaps):', function (){
+      let idRedGerencia;
+
+      it('Se puede anadir una red a Armunia', function (done) {
+        let redGerencia = {
+          cidr: '10.36.29.0/26',
+          gateway: '10.36.29.1',
+          tipo: 'centro'
+        };
+
+        // Se crea una red temporal y se almacena su id
+        chai.request(server)
+          .post('/redes')
+          .send(redGerencia)
+          .then(res => {
+              expect(res).to.have.status(200);
+              idRedGerencia = res.body.redGuardada._id;
+
+              // Se recupera Armunia del server
+              chai.request(server)
+                .get(`/eaps/${armuniaID}`)
+                .end((err, res) => {
+                  expect(err).to.not.exist;
+                  expect(res).to.have.status(200);
+
+                  let armuniaNuevo = res.body;
+                  armuniaNuevo._redes.push(idRedGerencia);
+
+                  // Se suben los cambios al server (armunia updateado con la red)
+                  chai.request(server)
+                    .put(`/eaps/${armuniaID}`)
+                    .send(armuniaNuevo)
+                    .then(res => {
+                        expect(res).have.status(200);
+                        expect(res.body.lugarGuardado).to.have.property('codigo').equal(fixtures.armunia.codigo);
+                        expect(res.body.lugarGuardado._redes[0]).equal(idRedGerencia);
+
+                        done();
+                      })
+                    .catch(err => {
+                        expect(err).to.not.exist;
+                        done(new Error(err.response.text));
+                      });
+                });
+            })
+          .catch(err => {
+              expect(err).to.not.exist;
+              done(Error(err.response.text));
+            });
+      });
+
       it('Se puede insertar un centro con redes ya predefinidas');
       it('Se puede crear un centro con redes y consultorios (COMPLETO) basado en Eras');
-      it('Se puede anadir una red a un centro de salud');
-      it('Se puede eliminar la red del centro de salud');
       it('No se puede eliminar un centro de salud con redes y/o consultorios asociados');
+      it('Se puede eliminar la red del centro de salud');
       it('No se puede eliminar un consultorio con redes asociados');
 		});
 
