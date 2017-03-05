@@ -7,11 +7,13 @@ const _          = require('lodash');
 
 const dispositivoSchema = new mongoose.Schema({
   nombre: { type: String, required: true, unique: true },
+  nombresAntiguos: [ { type: String } ],
   IPs: [{
     IP: { type: Number, unique: false },
     _networkID: { type: mongoose.Schema.Types.ObjectId, ref: 'Redes' }
   }],
-  tipo: { type: String, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada'] },
+  IPsAntiguas: [ { type: Number } ],
+  tipo: { type: String, required: true, enum: ['PC', 'Portátil', 'Impresora', 'Equipo de red', 'Servidor', 'Impresora CPC', 'Reservada'] },
   datosTecnicos: {
     fabricante: String,
     modelo: String,
@@ -33,6 +35,12 @@ const dispositivoSchema = new mongoose.Schema({
     }
 });
 
+
+// VALIDACIONES
+dispositivoSchema.pre('validate', function (next){
+  // TODO: el nombre deberia coincidir con el cnetro?? avisar solo
+
+});
 // TODO: incorporar un pre('validate') para las validaciones
 // TODO: hacer una propiedad lugarID: en el array de IPs (virtual a ver si asi va y si no.. habra que guardarla)
         // Para hacer populates en las consultas (very comodo hoyga)

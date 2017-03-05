@@ -65,6 +65,17 @@ redSchema.method('borraSeguro', function (cb) {
   });
 });
 
+// Le pasamos una IP y nos devuelve la red en la que esta (si esta en mas de una, error??)
+redSchema.static('getRed', function (ip, cb) {
+  /* let coincidenciasFn = function () {
+    return (ipOps.cidrSubnet(this.cidr).contains(ip));
+  }; *
+  return this.find({ $where: coincidenciasFn }, cb);*/
+  return this.find({})
+                .where('cidr').equals('10.36.29.0/26')
+                .exec(cb);
+});
+
 // VALIDACIONES
 redSchema.pre('validate', function (next){
   // CIDR
