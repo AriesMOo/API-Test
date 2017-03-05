@@ -28,22 +28,8 @@ function getRedConcreta (req, res) {
   const redID = req.params.redID;
 
   redModel.findById(redID)
-    .then(red => {
-      red.getDispositivos(function (err, lugar) {
-          if (err) {
-            console.log(err);
-            res.status(500).send(`andios ${err}`);
-          } else {
-            console.log(`ole yo ! >> ${lugar}`);
-            res.status(200).send(`ole yo >> ${lugar}`);
-          }
-        });
-      })
-    .catch(err => res.status(500).send(`hay un error ${err}`));
-
-  /* redModel.findById(redID)
     .then(red => (red ? res.status(200).send(red) : res.status(404).send({ message: 'El ID especificado no correspondea a ninguna RED' })))
-    .catch(err => res.status(500).send(err));*/
+    .catch(err => res.status(500).send(err));
 }
 
 function save (req, res) {
@@ -83,16 +69,15 @@ function borra (req, res) {
         if (!red)
           return res.status(400).send({ message: 'No existe el ID que quires eliminar' });
 
-
         // Si la red tiene dispositivos, no se elimina. Si esta asociada a un EAP y no tiene dispositivos, si se podra elimnar (por que no deberia?)
         red.getDispositivos(function (err, dispositivos) {
-            if (err) return res.status(500).send(err);
-            if (dispositivos) return res.status(404).send({ message: 'No se puede eliminar una red con dispositivos asociados.' });
+          if (err) return res.status(500).send(err);
+          if (dispositivos.length > 0) return res.status(404).send({ message: 'No se puede eliminar una red con dispositivos asociados.' });
 
-            console.log('@#@ aqui llego !');
-            red.remove()
-              .then(() => res.status(200).send('EAP borrado'))
-              .catch(err => res.status(500).send(err));
+          red.borraSeguro(function (err, mensajeOK) {
+            if (err) res.status(500).send(err);
+            else res.status(200).send(mensajeOK);
+          });
         });
       })
     .catch(err => res.status(500).send(err));

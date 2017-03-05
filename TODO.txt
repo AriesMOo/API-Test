@@ -1,5 +1,6 @@
-(A) Completar CRUD basico para RED.model y DISPOSITIVO.model
-Feature dispositivos
+(A) @DOING Completar CRUD basico para RED.model y DISPOSITIVO.model
+(A) @TODO ¡ojo! Si se elimina un consultorio, hay que sacarlo del array de _consultorios de su Centro de salud
+(B) ¡ojo! ELIMINAR RED desde EAP. Hacerlo invocando el metodo de la red (eliminaSeguro()). Si se elimnina una red (del array de _redes) de un EAP, hay que asegurarse de que no quede huerfana (o no permitir hacerlo si tinee dispositivos)
 Si los dispositivos tienen mas de una IP, señalizar de alguna manera
 Anadir los usuarios a los modelos y a la dinamica de la app (tests incluidos)
 +Mejora Cambiar la estructura del resto de ficheros a algo similar a Angular2 - components/lugares/lugar.model.js lugar.controller.js lugar.routes.js y quiza lugar.test.js
