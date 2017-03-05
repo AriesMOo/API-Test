@@ -69,7 +69,8 @@ describe('[X] TEST RED MODEL solo HTTP:', function () {
 
     it('Se puede crear un centro nuevo con una red ya incluida [TEMPORAL] (ojo se eliminara despues si se ejecuta solo "mocha"' , function (done) {
       // A partir de los datos de 'fixture' se construye el nuevo centro (ya con una red)
-      let armuniaMod = fixtures.armunia;
+      let armuniaMod = {};
+      Object.assign(armuniaMod, fixtures.armunia);
       armuniaMod._redes = [idRedArmunia];
 
       // Primero se crea Armunia (luego se eliminara si se ejecuta solo "mocha")

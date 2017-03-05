@@ -4,8 +4,8 @@ const ObjectId   = require('mongoose').Types.ObjectId;
 const chai       = require('chai');
 const chaiHttp   = require('chai-http');
 const lugarModel = require('../models/lugar.model');
+const redModel   = require('../components/redes/red.model');
 const fixtures   = require('./fixtures');
-const logger     = require('../config/log4js.config').getLogger('MODEL SPEC');
 const should     = chai.should;
 const expect     = chai.expect;
 
@@ -16,8 +16,10 @@ describe('[X] TEST LUGAR MODEL:', function () {
 	let IDarmuniaMetidoDesdeBBDD;
 
   before('Remove all data from EAPs collection', function (done){
-		// lugarModel.remove({}).exec();
-    lugarModel.remove({}, done);
+		redModel.remove({}).exec();
+    lugarModel.remove().exec();
+
+    done();
 	});
 
   /** ********************************************************************* **/
@@ -136,12 +138,12 @@ describe('[X] TEST LUGAR MODEL:', function () {
 						expect(res.body.lugarGuardado).have.property('codigo').equal(fixtures.armunia.codigo);
             expect(res.body.lugarGuardado.telefonos.length).equal(2);
 
-						let keysPasadas = Object.keys(fixtures.armunia);
+						armuniaID = res.body.lugarGuardado._id;
+
+            let keysPasadas = Object.keys(fixtures.armunia);
 						let keysAdicionales = ['_id', '__v', 'createdAt', 'updatedAt', '_consultorios', '_redes'];
 						let keys = keysPasadas.concat(keysAdicionales);
 						expect(res.body.lugarGuardado).to.have.all.keys(keys);
-
-						armuniaID = res.body.lugarGuardado._id;
 
 						done();
 					})
@@ -478,6 +480,7 @@ describe('[X] TEST LUGAR MODEL:', function () {
       it('No se puede eliminar un centro de salud con redes y/o consultorios asociados');
       it('Se puede eliminar la red del centro de salud');
       it('No se puede eliminar un consultorio con redes asociados');
+      it('No se puede insertar una red con un id que no existe');
 		});
 
     // RUTAS GENERICAS---------------------------------------------------------

@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose   = require('mongoose');
-const lugarModel = require('../models/lugar.model');
+const lugarModel = require('../../models/lugar.model');
 const ipOps      = require('ip');
 const _          = require('lodash');
 

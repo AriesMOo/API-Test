@@ -3,22 +3,23 @@
 require('babel-core/register');
 require('babel-polyfill'); // Para poder utilizar todos las cosas pepis de ES2015,2016 y 2017 via babel.js
 
-const express        = require('express');
-const mongoose       = require('mongoose');
-const bodyParser     = require('body-parser'); // Para parsear peticiones HTTP
-const morgan         = require('morgan');
-const sriracha       = require('sriracha');
-const logger         = require('./config/log4js.config').getLogger('InicioApp'); // .getDefaultLogger();
-const authController = require('./controllers/user');
-const config         = require('./config/config');
+const express            = require('express');
+const mongoose           = require('mongoose');
+const bodyParser         = require('body-parser'); // Para parsear peticiones HTTP
+const morgan             = require('morgan');
+const sriracha           = require('sriracha');
+const logger             = require('./config/log4js.config').getLogger('InicioApp'); // .getDefaultLogger();
+const authController     = require('./controllers/user');
+const config             = require('./config/config');
 
 // Routers
-const generalRouter  = require('./routes/generalRoutes');
-const apiRouter      = require('./routes/apiRoutes');
-const redesRouter    = require('./components/redes/redes.route');
-const authUserRouter = require('./routes/authUserRoutes');
+const generalRouter      = require('./routes/generalRoutes');
+const apiRouter          = require('./routes/apiRoutes');
+const redesRouter        = require('./components/redes/redes.route');
+const dispositivosRouter = require('./components/dipositivos/dispositivos.route');
+const authUserRouter     = require('./routes/authUserRoutes');
 
-const loggerFichero = require('./config/log4js.config').getLogger('stockApp');
+const loggerFichero      = require('./config/log4js.config').getLogger('stockApp');
 
 const app = express();
 
@@ -64,6 +65,7 @@ mongoose.connect(config.db, (err, res) => {
 app.use('/', generalRouter);
 app.use('/api', apiRouter);
 app.use('/api', redesRouter);
+app.use('/api', dispositivosRouter);
 app.use('/api', express.Router().all('*', authController.ensureAuthenticationMiddleware));
 app.use('/user', authUserRouter);
 
