@@ -11,21 +11,14 @@ module.exports = {
 };
 
 function getRedes (req, res) {
-  redModel.getRed('poya', function (err, red){
-    if (err) return res.status(500).send(`Hay un error >> ${err}`);
-    if (!red || red.length < 1) return res.status(404).send(`No existe la red? >> ${red}`);
-
-    res.status(200).send({ message: `La red es >> ${red}` });
-  });
-
-  /* redModel.find({})
+  redModel.find({})
     .then(redes => {
       if (redes.length == 0)
         return res.status(404).send({ message: 'No existen redes en la BBDD' });
 
       res.status(200).send(redes);
     })
-    .catch(err => res.status(500).send({ err })); */
+    .catch(err => res.status(500).send({ err }));
 }
 
 /**
