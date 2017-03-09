@@ -4,6 +4,7 @@ const ObjectId         = require('mongoose').Types.ObjectId;
 const chai             = require('chai');
 const chaiHttp         = require('chai-http');
 const lugarModel       = require('../models/lugar.model');
+const redModel         = require('../components/redes/red.model');
 const dispositivoModel = require('../components/dipositivos/dispositivo.model');
 const fixtures         = require('./fixtures');
 const should           = chai.should;
@@ -16,6 +17,7 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
 
   before('Remove all data from Dispositivos collection', function (done){
 		dispositivoModel.remove({}).exec();
+    redModel.remove({}).exec();
     lugarModel.remove().exec();
 
     done();
@@ -27,11 +29,7 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
     let idRedTemp;
     let miEquipo = {
       nombre: 'GAPLE1810SSIN0103',
-      tipo: 'PC',
-      /* IPs: {
-        IP: '10.36.29.49',
-        _networkID: ''
-      }*/
+      tipo: 'PC'
     };
 
     it('Se puede crear un dispositivo basado en mi propio equipo', function (done) {
@@ -52,7 +50,22 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
         .catch(err => done(Error(err.response.text)) );
     });
 
-    it('Se puede eliminar el anterior dispositivo');
+    it('Se puede eliminar el anterior dispositivo', function (done) {
+      chai.request(server)
+        .del(`/dispositivos/${idMiEquipo}`)
+        .then(function (res) {
+            expect(res).to.have.status(200);
+
+            // Busca en la BBDD por el modelo y revisa si se efectivamente se ha borrado
+            dispositivoModel.findById(idMiEquipo, function (err, disp) {
+              expect(err).to.not.exist;
+              expect(disp).to.not.exist;
+
+              done();
+            });
+          })
+        .catch(err => done(Error(err)) );
+    });
 
     it('Se puede crear una red e insertar mi equipo en ella', function (done) {
       let redTemp = {
@@ -62,6 +75,7 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
         notas: 'Es una red de prueba creada desde 2_dispositivo.spec.js'
       };
 
+      // Se crea la red
       chai.request(server)
         .post('/redes')
         .send(redTemp)
@@ -69,15 +83,62 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
             expect(res).to.have.status(200);
             idRedTemp = res.body.redGuardada._id;
 
-            // TODO: crear 1º el equip sin la red. Crear un test que lo actualice con la red esta y fuera. [o borrar el disps y volverlo a crear actualizado !!] O crear primero la red. Una de dos !
-            /* chai.request(server)
-              .post()*/
-            done();
+            miEquipo.IPs = {
+              IP: '10.36.29.49',
+              _networkID: idRedTemp
+            };
+
+            // Se crea un nuevo equipo
+            chai.request(server)
+              .post('/dispositivos')
+              .send(miEquipo)
+              .then(function (res) {
+                  expect(res).have.status(200);
+                  expect(res.body).to.be.an('object');
+                  expect(res.body).to.have.property('dispositivoGuardado');
+                  expect(res.body.dispositivoGuardado).have.property('nombre').equal(miEquipo.nombre.toLowerCase());
+                  expect(res.body.dispositivoGuardado).have.property('tipo').equal(miEquipo.tipo);
+                  expect(res.body.dispositivoGuardado).to.have.property('IPs');
+                  expect(res.body.dispositivoGuardado.IPs.length).to.be.equal(1);
+
+                  idMiEquipo = res.body.dispositivoGuardado._id;
+
+                  done();
+                })
+              .catch(err => console.error(err) );
           })
         .catch(err => done(Error(err.response.text)) );
     });
 
-    it('Se puede actualizar el dispositivo anterior');
+    it('Se puede actualizar el dispositivo anterior', function (done) {
+      let dispActualizado;
+
+      chai.request(server)
+        .get(`/dispositivos/${idMiEquipo}`)
+        .then( function (res) {
+            expect(res).have.status(200);
+            expect(res.body).have.property('nombre').equal(miEquipo.nombre.toLowerCase());
+
+            dispActualizado = res.body;
+            dispActualizado.nombre = 'pozipozno';
+          })
+        .then( function (res) {
+            chai.request(server)
+              .put(`/dispositivos/${idMiEquipo}`)
+              .send(dispActualizado);
+          })
+        .then(function (res) {
+            expect(res).have.status(200);
+            expect(res.body).have.property('nombre').equal('pozipozno');
+
+            done();
+          })
+        .catch(err => { console.error(err); done(Error(err.response.text)); });
+    });
+
+    it('Se puede actualizar el dispositivo anterior con una nueva IP (creando una nueva red ad-hoc)');
+    it('Se puede borrar IPs y no pasa nada');
+    it('Un dispositivo puede no tener IPs y no se rompe nada');
     // TODO: comprobar si red.getDispositivos() funcionan bien !! ;)
   });
 

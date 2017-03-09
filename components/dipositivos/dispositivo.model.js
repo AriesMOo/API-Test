@@ -43,12 +43,12 @@ const dispositivoSchema = new mongoose.Schema({
 // TODO: hacer una propiedad lugarID: en el array de IPs (virtual a ver si asi va y si no.. habra que guardarla)
 
 // VALIDACIONES
-dispositivoSchema.pre('validate', function (next){
+dispositivoSchema.pre('validate', function (next) {
   // TODO: el nombre deberia coincidir con el cnetro?? avisar solo
   // TODO: asegurarse de que el nombre coincide con el centro al que se asocia la red (y por ende, el equipo)
 
   // Las validacione son sobre todo (de momento unicamente) para las IPs y las redes-ids
-  this.IPs.forEach((conjuntoIP) => {
+  this.IPs.forEach(function (conjuntoIP) {
     // Test IP: es correcta?
     const regExIP = /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/;
     if (!regExIP.test(conjuntoIP.IP))
@@ -58,17 +58,15 @@ dispositivoSchema.pre('validate', function (next){
     if (conjuntoIP.isDirectModified() || conjuntoIP.isNew)
       // TODO: comprobar que el isDirectModified funciona bien
       // Para cada IP modificada o nueva, se comprueba 1) si el networkID corresponde con una red existente y 2) si la IP esta en el rango de ese networkID
-      redModel.findById(conjuntoIP._networkID)
-        .then(red => {
-            if (!red)
-              return next(Error(`No hay ninguna red que conincida con el networkID asignado a una IP (${conjuntoIP._networkID}) `));
+      redModel.findById(conjuntoIP._networkID, function (err, red) {
+        if (err) return next(err);
+        if (!red) return next(Error(`No hay ninguna red que conincida con el networkID asignado a una IP (${conjuntoIP._networkID}) `));
+        if (!ipOps.cidrSubnet(red.cidr).contains(conjuntoIP.IP))
+          return next(Error(`La IP ${conjuntoIP.IP} está fuera del rango ${red.cidr} para la red seleccionada`));
 
-            if (!ipOps.cidrSubnet(red.cidr).contains(conjuntoIP.IP))
-              return next(Error(`La IP ${conjuntoIP.IP} está fuera del rango ${red.cidr} para la red seleccionada`));
-          })
-        .cath(err => next(err));
-
-    });
+        // TODO: de paso, validar si la red esta asignada a un centro tb??
+      });
+  });
 
   next();
 });

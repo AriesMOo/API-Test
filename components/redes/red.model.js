@@ -124,6 +124,8 @@ redSchema.pre('validate', function (next){
     return next(Error(`El gateway ${this.gateway} no pertenece al rango del CIDR o no tiene un formato válido`));
 
   // TODO: si el CIDR cambia verificar que los dispositivos asociados a esta red siguen siendo validos
+  // TODO: antes de proceder a salvar la red comprobar que su id esta asociado a algun EAP (this.getLugar())
+
   next();
 });
 

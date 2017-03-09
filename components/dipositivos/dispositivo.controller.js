@@ -4,6 +4,7 @@ const ipOps            = require('ip');
 const mongoose         = require('mongoose');
 const lugarModel       = require('../../models/lugar.model');
 const dispositivoModel = require('./dispositivo.model');
+const redModel = require('../redes/red.model');
 
 module.exports = {
     getDispositivos,
@@ -11,15 +12,42 @@ module.exports = {
     save,
     update,
     borra,
-    testAggregation
+    testAggregation,
+    testGetDispositivosRed
 };
 
+function testGetDispositivosRed (req, res){
+  const redID = req.params.redID;
+  let resultado = {};
+
+  // NOTA: para esto existen las promesas. Se deja un solo catch al final y se van encadenando .thens al mismo nivel haciendo consultas
+  redModel.findById(redID, function (err, red) {
+    if (err) return res.status(500).send(err);
+    if (!red) return res.status(404).send('No hay redes con el ID pasado');
+
+    red.getDispositivos(function (err, disp) {
+      if (err) return res.status(500).send(err);
+      if (!disp) resultado.dispositivosRed = 'La red no tiene dispositivos asignados';
+      else resultado.dispositivosRed = disp;
+
+      red.getLugar(function (err, lugar) {
+        if (err) return res.status(500).send(err);
+
+        if (!lugar) resultado.lugarRed = 'La red no esta asociada a ningun EAP';
+        else resultado.lugarRed = lugar;
+
+        return res.status(200).send(resultado);
+      });
+    });
+  });
+}
+
 function getDispositivos (req, res) {
-  dispositivoModel.find({}, (err, dispositives) => {
-    if (!dispositives || dispositives.length == 0)
+  dispositivoModel.find({}, (err, dispositivos) => {
+    if (!dispositivos || dispositivos.length == 0)
       return res.status(404).send({ message: 'No hay dispositivos' });
 
-    res.status(200).send({ dispositives });
+    res.status(200).send(dispositivos);
   });
 }
 
@@ -30,7 +58,7 @@ function getDispositivoConcreto (req, res) {
   const dispositivoID = req.params.dispositivoID;
 
   dispositivoModel.findById(dispositivoID)
-    .then(red => (red ? res.status(200).send(red) : res.status(404).send({ message: 'El ID especificado no correspondea a ningun dispositivo' })))
+    .then(disp => (disp ? res.status(200).send(disp) : res.status(404).send({ message: 'El ID especificado no correspondea a ningun dispositivo' })))
     .catch(err => res.status(500).send(err));
 }
 
@@ -62,9 +90,9 @@ function update (req, res){
 }
 
 function borra (req, res) {
-  const dispostiivoID = req.params.dispostiivoID;
+  const dispositivoID = req.params.dispositivoID;
 
-  dispositivoModel.findById(dispostiivoID)
+  dispositivoModel.findById(dispositivoID)
     .then((dispositivo) => {
         if (!dispositivo)
           return res.status(400).send({ message: 'No existe el ID que quires eliminar' });

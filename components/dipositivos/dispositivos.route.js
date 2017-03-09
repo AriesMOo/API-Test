@@ -3,6 +3,8 @@
 const router  = require('express').Router();
 const dispositivoCtrl = require('./dispositivo.controller');
 
+router.route('/ds/:redID').get(dispositivoCtrl.testGetDispositivosRed);
+
 router.route('/dispositivos')
   .get(dispositivoCtrl.getDispositivos)
   .post(dispositivoCtrl.save);
