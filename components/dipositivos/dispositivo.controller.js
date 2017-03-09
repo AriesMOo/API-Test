@@ -72,8 +72,8 @@ function save (req, res) {
 }
 
 function update (req, res){
-  const dispostiivoID = req.params.dispostiivoID;
-  dispositivoModel.findById(dispostiivoID)
+  const dispositivoID = req.params.dispositivoID;
+  dispositivoModel.findById(dispositivoID)
   .then(dispositivo => {
       if (!dispositivo) return res.status(400).send({ message: 'ID no corresponde a ningun dispositivo' });
 

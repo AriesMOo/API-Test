@@ -14,6 +14,7 @@ const server = 'http://localhost:3000/api';
 chai.use(chaiHttp);
 
 describe('[X] TEST DISPOSITIVO MODEL:', function () {
+  let idMiEquipo;
 
   before('Remove all data from Dispositivos collection', function (done){
 		dispositivoModel.remove({}).exec();
@@ -25,7 +26,6 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
 
   // PRUEBAS BASE------------------------------------------------------------
   describe('>>Base test con dispositivos (/api/dispositivos):', function (){
-    let idMiEquipo;
     let idRedTemp;
     let miEquipo = {
       nombre: 'GAPLE1810SSIN0103',
@@ -111,27 +111,26 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
     });
 
     it('Se puede actualizar el dispositivo anterior', function (done) {
-      let dispActualizado;
-
       chai.request(server)
         .get(`/dispositivos/${idMiEquipo}`)
         .then( function (res) {
             expect(res).have.status(200);
             expect(res.body).have.property('nombre').equal(miEquipo.nombre.toLowerCase());
 
-            dispActualizado = res.body;
+
+            let dispActualizado = res.body;
             dispActualizado.nombre = 'pozipozno';
-          })
-        .then( function (res) {
+
             chai.request(server)
               .put(`/dispositivos/${idMiEquipo}`)
-              .send(dispActualizado);
-          })
-        .then(function (res) {
-            expect(res).have.status(200);
-            expect(res.body).have.property('nombre').equal('pozipozno');
+              .send(dispActualizado)
+              .then(function (res) {
+                  expect(res).have.status(200);
+                  expect(res.body.dispositivoGuardado).have.property('nombre').equal('pozipozno');
 
-            done();
+                  done();
+                })
+              .catch(err => { console.log(err); done(err); });
           })
         .catch(err => { console.error(err); done(Error(err.response.text)); });
     });
@@ -139,46 +138,45 @@ describe('[X] TEST DISPOSITIVO MODEL:', function () {
     it('Se puede actualizar el dispositivo anterior con una nueva IP (creando una nueva red ad-hoc)');
     it('Se puede borrar IPs y no pasa nada');
     it('Un dispositivo puede no tener IPs y no se rompe nada');
-    // TODO: comprobar si red.getDispositivos() funcionan bien !! ;)
   });
 
   // RUTAS GENERICAS---------------------------------------------------------
   describe('>>Rutas genericas:', function (){
-    /* it('Puede hacer un GET /api/eaps', function (done){
+    it('Puede hacer un GET /api/dispositivos', function (done){
       chai.request(server)
-        .get('/eaps')
+        .get('/dispositivos')
         .end((err, res) => {
           expect(err).not.exist;
           res.should.have.status(200);
           res.body.should.be.an('array');
           // expect(res.body[0]).to.have.all.keys(['_id', 'esCentroSalud']); // Esto obliga a que no hay ni mas ni menos que las especificadas
-          expect(res.body[0]).to.contains.all.keys(['_id', 'esCentroSalud']);
+          expect(res.body[0]).to.contains.all.keys(['_id', 'nombre', 'tipo', 'historico', 'IPs']);
 
           done();
         });
     });
 
-    it('Puede hacer un GET en /api/eaps:ideap para conseguir info de un solo EAP', function (done){
+    it('Puede hacer un GET en /dispositivos:iddisp para conseguir info de un solo EAP', function (done){
       chai.request(server)
-        .get(`/eaps/${armuniaID}`)
+        .get(`/dispositivos/${idMiEquipo}`)
         .end((err, res) => {
           expect(err).to.not.exist;
           expect(res).to.have.status(200);
           expect(res.body).to.be.an('object');
-          expect(res.body).to.have.property('codigo').equal(fixtures.armunia.codigo);
+          expect(res.body).to.have.property('nombre');
 
           done();
         });
     });
 
-    it('Un GET a /api/eaps:ideap con una id que no existe devuelve un stus 404', function (done){
+    it('Un GET a /api/dispositivos:iddispositivo con una id que no existe devuelve un stus 404', function (done){
       chai.request(server)
-        .get('/eaps/58ac1ba4ed9a564598399bed')
+        .get('/dispositivos/58ac1ba4ed9a564598399bed')
         .end((err) => {
           expect(err).to.have.status(404);
 
           done();
         });
-    });*/
+    });
   });
 });
