@@ -3,7 +3,6 @@
 const express               = require('express');
 const config                = require('../config/config');
 const productController     = require('../controllers/product');
-const dispositivoController = require('../controllers/dispositivo.controller');
 const lugaresController     = require('../controllers/lugar.controller.js');
 const apiRouter             = express.Router();
 
@@ -18,12 +17,6 @@ apiRouter.get('/', (req, res) => {
               <li><a href="http://localhost:${config.port}/api/redes">Redes</a></li>
             </ul>`);
 });
-
-/* test  */
-apiRouter.get('/testAggregation', dispositivoController.testAggregation);
-
-apiRouter.get('/dispositivos', dispositivoController.getDispositivos);
-apiRouter.post('/dispositivos', dispositivoController.saveDispositivo);
 
 apiRouter.route('/eaps')
   .get(lugaresController.getLugares)

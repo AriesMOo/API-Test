@@ -55,6 +55,8 @@ lugarSchema.pre('validate', function (next){
       return next(Error('No se permiten IDs duplicados dentro de _consultorios'));
   }
 
+  // TODO: comprobar que las ids de las redes existen !!
+  // TODO: comporobar que las ids de las redes existen en uno y solo uno EAP (red no esta en varios EAPs a la vez)
   // Users de audit (con UserModel.findById)
 
   next();

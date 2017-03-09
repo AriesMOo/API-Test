@@ -40,9 +40,15 @@ let redArmunia = {
   notas: 'Son unas noticas...'
 };
 
+let equipoArmunia = {
+  nombre: 'gaple1710ss0301',
+  tipo: 'PC'
+};
+
 module.exports = {
   armunia,
   cembranos,
   grulleros,
-  redArmunia
+  redArmunia,
+  equipoArmunia
 };

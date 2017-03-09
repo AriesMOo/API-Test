@@ -65,6 +65,49 @@ redSchema.method('borraSeguro', function (cb) {
   });
 });
 
+// Le pasamos una IP y nos devuelve la red en la que esta (si esta en mas de una, error??)
+redSchema.static('getRed', function (ip, cb) {
+  // NOTA: Esto no va porque no no pilla la fn ipOps dentro de Mongo..
+  /* let coincidenciasFn = function () {
+    return (ipOps.cidrSubnet(this.cidr).contains(ip));
+  }; *
+  return this.find({ $where: coincidenciasFn }, cb);*/
+
+  // Primero se comprueba si el parametro pasado es una IP valida
+  // TODO: hacer un helper (action helper, model helper o lo que sea) con las constantes para las IPs y el CIDR (que se usa en mas sitios, IE: dispositivo.model)
+  const regExIP = /^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/;
+  if (!regExIP.test(ip))
+    return cb(Error(`Lo que se pretende buscar no parece una ip valida [${ip}]`), null);
+
+  // Si la ip esta bien formada, se buscan todas las redes
+  this.find({}, function (err, redes) {
+    if (err) return cb(err, null);
+
+    if (!redes || redes.length < 1)
+      return cb(err, redes);
+    else {
+      let contadorRedesEncontradas = 0;
+      let resultado = null;
+
+      // Se recorren las redes hasta encontrar una que en la que pueda estar y se almacenan resultados intermedios para luego analizar y/o devolver los datos
+      redes.forEach(function (red) {
+        if (ipOps.cidrSubnet(red.cidr).contains(ip)) {
+          contadorRedesEncontradas++;
+          resultado = red;
+        }
+      });
+
+      if (contadorRedesEncontradas > 0)
+        if (contadorRedesEncontradas > 1)
+          return (cb(Error('INCONSISTENCIA GRAVE EN LA APP. Existe mas de una red que contiene la IP buscada'), null));
+        else
+          return cb(null, resultado);
+      else
+        return cb(null, resultado);
+    }
+  });
+});
+
 // VALIDACIONES
 redSchema.pre('validate', function (next){
   // CIDR
@@ -81,6 +124,8 @@ redSchema.pre('validate', function (next){
     return next(Error(`El gateway ${this.gateway} no pertenece al rango del CIDR o no tiene un formato válido`));
 
   // TODO: si el CIDR cambia verificar que los dispositivos asociados a esta red siguen siendo validos
+  // TODO: antes de proceder a salvar la red comprobar que su id esta asociado a algun EAP (this.getLugar())
+
   next();
 });
 
