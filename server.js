@@ -64,16 +64,17 @@ mongoose.connect(config.db, (err, res) => {
 
 // Tema CORS -> Se inyecta en el header de cada respuesta res los valores Acces-Control para que el navegador se fie de los resultados traidos desde el server TODO: especificar origin concreto (localhost:4200 o localhost [el array de direcciones da problemas])
 let allowCrossDomain = function (req, res, next) {
-    if ('OPTIONS' == req.method) {
+    // if ('OPTIONS' == req.method) {
       res.header('Access-Control-Allow-Origin', '*');
       res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept'); // 'Content-Type, Authorization, Content-Length, X-Requested-With');
       // res.send(200);
       next();
-    } else {
+    /* } else {
       next();
-    }
+    }*/
 };
+// app.use('*', express.Router().all('*', allowCrossDomain));
 app.use(allowCrossDomain);
 
 // Configuramos routers con rutas base. A veces pude dar problemas si se hace antes/despuesde otros modulos
